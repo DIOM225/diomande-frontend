@@ -1,0 +1,229 @@
+/* =========================
+   HEADER BASE
+========================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 80px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* =========================
+   LOGO
+========================= */
+.logo {
+  display: flex;
+  align-items: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ff6a00;
+  cursor: pointer;
+}
+
+.logo span {
+  color: #111827;
+}
+
+/* =========================
+   NAV LINKS
+========================= */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav a {
+  text-decoration: none;
+  color: #111827;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.nav a:hover {
+  color: #ff6a00;
+  background: rgba(255, 106, 0, 0.06);
+}
+
+/* =========================
+   LOGOUT BUTTON
+========================= */
+.logout-btn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
+}
+
+/* =========================
+   MOBILE MENU ICON
+========================= */
+.mobile-menu-icon {
+  display: none;
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #111827;
+}
+
+/* =========================
+   MOBILE MENU (FINAL POLISHED)
+========================= */
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 2000;
+  padding-top: 5vh;
+  animation: fadeIn 0.25s ease forwards;
+}
+
+.mobile-menu {
+  background: #fff;
+  width: 90%;
+  max-width: 380px;
+  border-radius: 20px;
+  padding: 2rem 1.75rem 1.75rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  animation: slideUp 0.35s ease forwards;
+  position: relative;
+}
+
+/* Brand */
+.mobile-menu::before {
+  content: "Diomande.com";
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: #ff6a00;
+  display: block;
+  text-align: center;
+  margin-bottom: 0.8rem;
+}
+
+/* Close icon */
+.close-icon {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  font-size: 1.5rem;
+  color: #111827;
+  cursor: pointer;
+  background: #fff;
+  border-radius: 50%;
+  padding: 0.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+.close-icon:hover {
+  background: #f3f4f6;
+  transform: rotate(90deg);
+}
+
+/* Links */
+.mobile-menu a,
+.mobile-menu button {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #111827;
+  text-decoration: none;
+  background: #f9fafb;
+  border: none;
+  text-align: center;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 0 0 1px #f3f4f6;
+}
+
+.mobile-menu a:hover,
+.mobile-menu button:hover {
+  background: rgba(255, 106, 0, 0.08);
+  color: #ff6a00;
+  box-shadow: inset 0 0 0 1px #ff6a00;
+}
+
+/* Logout button */
+.mobile-menu .logout-btn {
+  background: #dc2626;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.85rem;
+  text-align: center;
+  margin-top: 0.75rem;
+  font-weight: 600;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.mobile-menu .logout-btn:hover {
+  background: #b91c1c;
+  transform: scale(1.02);
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 1024px) {
+  .nav {
+    display: none;
+  }
+
+  .mobile-menu-icon {
+    display: block;
+  }
+
+  .header {
+    padding: 0.5rem 1rem;
+    height: 70px;
+  }
+
+  .logo {
+    font-size: 1.15rem;
+  }
+}
