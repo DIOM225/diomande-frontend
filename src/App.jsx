@@ -11,6 +11,7 @@ import NotAuthorized from "./pages/NotAuthorized.jsx";
 // 🏠 Core Pages
 import HomePage from "./pages/HomePage.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx"; // ✅ NEW PAGE
 
 // 💼 Loye System
 import LoyeDashboard from "./pages/loye/LoyeDashboard.jsx";
@@ -36,6 +37,7 @@ export default function App() {
         {/* 🌍 Public Pages */}
         <Route path="/" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/reset-password" element={<ResetPassword />} /> {/* ✅ Added */}
         <Route path="/not-authorized" element={<NotAuthorized />} />
 
         {/* 🏢 Loye Flow — All protected by RequireAuth */}

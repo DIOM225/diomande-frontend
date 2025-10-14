@@ -1,258 +1,257 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState } from "react";
 import axios from "../utils/axiosInstance";
-import {
-  FaLock,
-  FaUser,
-  FaPhone,
-  FaEnvelope,
-  FaEye,
-  FaEyeSlash,
-} from "react-icons/fa";
+import { useNavigate, Link } from "react-router-dom";
+import { FaUser, FaPhone, FaLock, FaEye, FaEyeSlash, FaBirthdayCake } from "react-icons/fa";
 
 function AuthPage() {
-  const [mode, setMode] = useState("login");
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+  const [isLogin, setIsLogin] = useState(true);
+  const [form, setForm] = useState({
     name: "",
     phone: "",
-    email: "",
+    birthday: "",
+    identifier: "",
     password: "",
     confirmPassword: "",
   });
-  const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const redirect = searchParams.get("redirect") || "/";
-      navigate(redirect);
-    }
-  }, [navigate, searchParams]);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let cleanValue = value;
+    if (name === "phone") cleanValue = value.replace(/\D/g, "");
+    setForm((prev) => ({ ...prev, [name]: cleanValue }));
+    setError("");
+  };
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (mode === "signup") {
-      if (!formData.name.trim()) newErrors.name = "Le nom est requis.";
-      if (!formData.phone.trim())
-        newErrors.phone = "Le téléphone est requis.";
-      else if (!/^\d{8}$|^\d{10}$/.test(formData.phone))
-        newErrors.phone = "Le téléphone doit contenir 8 ou 10 chiffres.";
-      if (!formData.password)
-        newErrors.password = "Le mot de passe est requis.";
-      else if (formData.password.length < 6)
-        newErrors.password =
-          "Le mot de passe doit contenir au moins 6 caractères.";
-      if (formData.password !== formData.confirmPassword)
-        newErrors.confirmPassword = "Les mots de passe ne correspondent pas.";
-    } else {
-      if (!formData.phone && !formData.email)
-        newErrors.identifier = "Téléphone ou email requis.";
-      if (!formData.password)
-        newErrors.password = "Le mot de passe est requis.";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const saveAndRedirect = (res) => {
+    const { token, user, loyeUnitCode } = res.data;
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+
+    const roleFromLoye = res.data?.user?.loye?.role;
+    if (roleFromLoye) localStorage.setItem("loyeRole", roleFromLoye);
+    else localStorage.removeItem("loyeRole");
+
+    if (loyeUnitCode) localStorage.setItem("loye.unitCode", loyeUnitCode);
+    else localStorage.removeItem("loye.unitCode");
+
+    navigate("/");
+    window.location.reload();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
 
-    setLoading(true);
+    const cleanedPhone = form.phone.replace(/\D/g, "");
+
+    if (!isLogin && (cleanedPhone.length !== 8 && cleanedPhone.length !== 10)) {
+      setError("Le numéro de téléphone doit contenir 8 ou 10 chiffres.");
+      return;
+    }
+
+    if (!isLogin && form.password !== form.confirmPassword) {
+      setError("Les mots de passe ne correspondent pas.");
+      return;
+    }
+
+    const endpoint = isLogin
+      ? `${import.meta.env.VITE_API_URL}/api/auth/login`
+      : `${import.meta.env.VITE_API_URL}/api/auth/register`;
+
     try {
-      const endpoint =
-        mode === "login" ? "/api/auth/login" : "/api/auth/register";
+      setLoading(true);
 
-      const payload =
-        mode === "login"
-          ? {
-              identifier: formData.email || formData.phone,
-              password: formData.password,
-            }
-          : {
-              name: formData.name,
-              phone: formData.phone,
-              email: formData.email,
-              password: formData.password,
-            };
+      const payload = isLogin
+        ? { identifier: form.identifier.trim(), password: form.password }
+        : {
+            name: form.name,
+            phone: cleanedPhone,
+            birthday: form.birthday,
+            password: form.password,
+          };
 
       const res = await axios.post(endpoint, payload);
-      const { token, user } = res.data;
-
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-
-      const redirect = searchParams.get("redirect") || "/";
-      navigate(redirect);
-    } catch (error) {
-      const msg =
-        error.response?.data?.message ||
-        "Une erreur est survenue. Veuillez réessayer.";
-      alert(msg);
+      saveAndRedirect(res);
+    } catch (err) {
+      const msg = err.response?.data?.message || "Une erreur est survenue";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleModeSwitch = () => {
-    setMode(mode === "login" ? "signup" : "login");
-    setErrors({});
-    setFormData({
-      name: "",
-      phone: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    });
-  };
-
   return (
-    <div style={styles.page}>
+    <div style={styles.container}>
       <div style={styles.card}>
-        <div style={styles.iconWrap}>
-          <FaLock size={36} color="#ff6a00" />
+        {/* 🔒 Icon header */}
+        <div style={styles.iconCircle}>
+          <FaLock color="#ff6a00" size={28} />
         </div>
 
-        <h2 style={styles.title}>
-          {mode === "login" ? "Connexion" : "Inscription"}
-        </h2>
+        <h2 style={styles.title}>{isLogin ? "Connexion" : "Inscription"}</h2>
         <p style={styles.subtitle}>
-          {mode === "login"
+          {isLogin
             ? "Accédez à votre espace personnel"
             : "Créez votre compte en quelques secondes"}
         </p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
-          {mode === "signup" && (
+          {!isLogin ? (
             <>
+              {/* Nom */}
               <div style={styles.inputGroup}>
                 <FaUser style={styles.icon} />
                 <input
-                  style={styles.input}
                   type="text"
+                  name="name"
                   placeholder="Nom complet"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  value={form.name}
+                  onChange={handleChange}
                   required
+                  style={styles.input}
                 />
               </div>
-              {errors.name && <p style={styles.error}>{errors.name}</p>}
 
+              {/* Téléphone */}
               <div style={styles.inputGroup}>
                 <FaPhone style={styles.icon} />
                 <input
-                  style={styles.input}
-                  type="tel"
+                  type="text"
+                  name="phone"
                   placeholder="Téléphone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
+                  value={form.phone}
+                  onChange={handleChange}
                   required
-                />
-              </div>
-              {errors.phone && <p style={styles.error}>{errors.phone}</p>}
-
-              <div style={styles.inputGroup}>
-                <FaEnvelope style={styles.icon} />
-                <input
+                  maxLength={10}
                   style={styles.input}
-                  type="email"
-                  placeholder="Email (optionnel)"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
                 />
               </div>
-            </>
-          )}
 
-          {mode === "login" && (
-            <div style={styles.inputGroup}>
-              <FaPhone style={styles.icon} />
-              <input
-                style={styles.input}
-                type="text"
-                placeholder="Téléphone ou Email"
-                value={formData.phone || formData.email}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    phone: e.target.value,
-                    email: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-          )}
+              {/* Date de naissance */}
+              <div style={styles.inputGroup}>
+                <FaBirthdayCake style={styles.icon} />
+                <input
+                  type="date"
+                  name="birthday"
+                  placeholder="Date de naissance"
+                  value={form.birthday}
+                  onChange={handleChange}
+                  required
+                  style={styles.input}
+                />
+              </div>
 
-          <div style={styles.inputGroup}>
-            <FaLock style={styles.icon} />
-            <input
-              style={styles.input}
-              type={showPassword ? "text" : "password"}
-              placeholder="Mot de passe"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              required
-            />
-            <div
-              onClick={() => setShowPassword(!showPassword)}
-              style={styles.eyeIcon}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </div>
-          </div>
-          {errors.password && <p style={styles.error}>{errors.password}</p>}
-
-          {mode === "signup" && (
-            <>
+              {/* Mot de passe */}
               <div style={styles.inputGroup}>
                 <FaLock style={styles.icon} />
                 <input
-                  style={styles.input}
-                  type="password"
-                  placeholder="Confirmez le mot de passe"
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      confirmPassword: e.target.value,
-                    })
-                  }
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Mot de passe"
+                  value={form.password}
+                  onChange={handleChange}
                   required
+                  style={styles.input}
+                />
+                <span
+                  onClick={() => setShowPassword((s) => !s)}
+                  style={styles.eyeIcon}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+
+              {/* Confirmation */}
+              <div style={styles.inputGroup}>
+                <FaLock style={styles.icon} />
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirmez le mot de passe"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  style={styles.input}
+                />
+                <span
+                  onClick={() => setShowConfirm((s) => !s)}
+                  style={styles.eyeIcon}
+                >
+                  {showConfirm ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Téléphone / Email */}
+              <div style={styles.inputGroup}>
+                <FaPhone style={styles.icon} />
+                <input
+                  type="text"
+                  name="identifier"
+                  placeholder="Téléphone ou Email"
+                  value={form.identifier}
+                  onChange={handleChange}
+                  required
+                  style={styles.input}
                 />
               </div>
-              {errors.confirmPassword && (
-                <p style={styles.error}>{errors.confirmPassword}</p>
-              )}
+
+              {/* Mot de passe */}
+              <div style={styles.inputGroup}>
+                <FaLock style={styles.icon} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Mot de passe"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  style={styles.input}
+                />
+                <span
+                  onClick={() => setShowPassword((s) => !s)}
+                  style={styles.eyeIcon}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
             </>
           )}
+
+          {error && <p style={styles.error}>{error}</p>}
 
           <button type="submit" style={styles.button} disabled={loading}>
             {loading
               ? "Chargement..."
-              : mode === "login"
+              : isLogin
               ? "Se connecter"
               : "S’inscrire"}
           </button>
 
           <p style={styles.switchText}>
-            {mode === "login" ? "Pas de compte ?" : "Déjà un compte ?"}{" "}
-            <span onClick={handleModeSwitch} style={styles.switchLink}>
-              {mode === "login" ? "Inscription" : "Connexion"}
+            {isLogin ? "Pas de compte ?" : "Déjà un compte ?"}{" "}
+            <span
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+              }}
+              style={styles.switchLink}
+            >
+              {isLogin ? "Inscription" : "Connexion"}
             </span>
           </p>
+
+          {isLogin && (
+            <Link to="/reset-password" style={styles.resetLink}>
+              🔁 Mot de passe oublié ?
+            </Link>
+          )}
         </form>
       </div>
     </div>
@@ -260,101 +259,89 @@ function AuthPage() {
 }
 
 const styles = {
-  page: {
-    minHeight: "100vh",
+  container: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    minHeight: "100vh",
     backgroundColor: "#f9fafb",
-    padding: "1rem",
-    fontFamily:
-      'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   },
   card: {
+    background: "#fff",
+    padding: "2.5rem 2rem",
+    borderRadius: "16px",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.07)",
     width: "100%",
     maxWidth: "400px",
-    background: "#fff",
-    borderRadius: "18px",
-    boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
-    padding: "2.5rem 2rem",
     textAlign: "center",
-    boxSizing: "border-box",
   },
-  iconWrap: {
-    background: "#fff4eb",
-    width: 70,
-    height: 70,
+  iconCircle: {
+    width: "64px",
+    height: "64px",
+    backgroundColor: "#fff4eb",
     borderRadius: "50%",
-    margin: "0 auto 1.3rem",
+    margin: "0 auto 1.2rem",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
   },
   title: {
-    fontSize: "1.7rem",
+    fontSize: "1.8rem",
     fontWeight: "700",
     color: "#111827",
-    marginBottom: "0.4rem",
+    marginBottom: "0.3rem",
   },
   subtitle: {
     color: "#6b7280",
     fontSize: "0.95rem",
-    marginBottom: "1.8rem",
+    marginBottom: "1.5rem",
   },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "1rem",
-  },
+  form: { display: "flex", flexDirection: "column", gap: "1rem" },
   inputGroup: {
     position: "relative",
-    width: "100%",
-  },
-  input: {
-    width: "100%",
-    boxSizing: "border-box",
-    padding: "0.85rem 2.8rem 0.85rem 2.8rem",
+    display: "flex",
+    alignItems: "center",
+    backgroundColor: "#f3f4f6",
     borderRadius: "10px",
-    border: "1px solid #d1d5db",
-    fontSize: "1rem",
-    outline: "none",
+    padding: "0.5rem 1rem",
   },
   icon: {
-    position: "absolute",
-    top: "50%",
-    left: "0.9rem",
-    transform: "translateY(-50%)",
+    marginRight: "0.6rem",
     color: "#9ca3af",
     fontSize: "1rem",
+  },
+  input: {
+    border: "none",
+    background: "transparent",
+    outline: "none",
+    width: "100%",
+    fontSize: "1rem",
+    color: "#111827",
   },
   eyeIcon: {
     position: "absolute",
-    top: "50%",
-    right: "0.9rem",
-    transform: "translateY(-50%)",
-    color: "#9ca3af",
+    right: "1rem",
     cursor: "pointer",
-    fontSize: "1rem",
+    color: "#9ca3af",
   },
   button: {
-    background: "#ff6a00",
+    backgroundColor: "#ff6a00",
     color: "#fff",
+    padding: "0.85rem",
     border: "none",
     borderRadius: "10px",
-    padding: "0.9rem",
     fontWeight: "600",
-    fontSize: "1rem",
     cursor: "pointer",
-    marginTop: "0.5rem",
+    fontSize: "1rem",
+    marginTop: "0.3rem",
   },
   error: {
     color: "red",
-    fontSize: "0.83rem",
-    textAlign: "left",
-    margin: "-0.3rem 0 0.3rem 0.2rem",
+    fontSize: "0.9rem",
+    marginTop: "-0.3rem",
   },
   switchText: {
-    marginTop: "1.5rem",
+    marginTop: "1.3rem",
     fontSize: "0.9rem",
     color: "#374151",
   },
@@ -362,6 +349,13 @@ const styles = {
     color: "#ff6a00",
     fontWeight: "600",
     cursor: "pointer",
+  },
+  resetLink: {
+    display: "block",
+    marginTop: "0.8rem",
+    fontSize: "0.9rem",
+    color: "#007bff",
+    textDecoration: "underline",
   },
 };
 
