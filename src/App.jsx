@@ -19,6 +19,7 @@ import OwnerProperties from "./pages/loye/OwnerProperties.jsx";
 import CreateProperty from "./pages/loye/CreateProperty.jsx";
 import PropertyDetailView from "./pages/loye/PropertyDetailView.jsx";
 import LoyeOnboarding from "./pages/loye/LoyeOnboarding.jsx";
+import ReceiptPage from "./pages/loye/ReceiptPage.jsx"; // ✅ NEW: Receipt Page
 
 // 🧰 Utilities
 import "./App.css";
@@ -94,6 +95,24 @@ export default function App() {
               <RequireLoyeRole role={["owner", "manager"]}>
                 <PropertyDetailView />
               </RequireLoyeRole>
+            </RequireAuth>
+          }
+        />
+
+        {/* 🧾 NEW: Payment Receipt */}
+        <Route
+          path="/loye/receipt/:id"
+          element={
+            <RequireAuth>
+              <ReceiptPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/loye/receipt/success"
+          element={
+            <RequireAuth>
+              <ReceiptPage />
             </RequireAuth>
           }
         />
