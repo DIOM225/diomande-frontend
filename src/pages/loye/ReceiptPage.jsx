@@ -1,3 +1,4 @@
+// client/src/pages/loye/ReceiptPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
@@ -17,16 +18,24 @@ export default function ReceiptPage() {
     async function fetchData() {
       try {
         const urlParams = new URLSearchParams(location.search);
-        const paymentId = id || urlParams.get("id");
+
+        // ✅ Try to read both ?id= and ?tx= from URL
+        const paymentId = id || urlParams.get("id") || urlParams.get("tx");
         if (!paymentId) {
           setLoading(false);
           return;
         }
 
         const token = localStorage.getItem("token");
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+
         const res = await axios.get(`/api/loye/payments/${paymentId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         setPayment(res.data);
       } catch (err) {
         console.error("Erreur de récupération du reçu :", err);
@@ -34,6 +43,7 @@ export default function ReceiptPage() {
         setLoading(false);
       }
     }
+
     fetchData();
   }, [id, location.search]);
 
@@ -49,6 +59,7 @@ export default function ReceiptPage() {
     pdf.save(`Recu-${payment?._id || "Paiement"}.pdf`);
   };
 
+  // ✅ Handle loading and missing receipt
   if (loading) return <div style={styles.center}>Chargement du reçu...</div>;
 
   if (!payment)
@@ -67,7 +78,7 @@ export default function ReceiptPage() {
         <h2 style={styles.title}>🧾 Reçu de paiement</h2>
 
         <div style={styles.section}>
-          <strong>Numéro de reçu :</strong> {payment._id}
+          <strong>Numéro de reçu :</strong> {payment._id || payment.transactionId}
         </div>
         <div style={styles.section}>
           <strong>Date :</strong>{" "}
