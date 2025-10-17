@@ -1,273 +1,223 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Download, Home, CheckCircle2 } from "lucide-react";
+import api from "../../utils/axiosInstance";
+
 const diomandeLogo = "/favicon.ico";
 
-
 export default function ReceiptPage() {
-  const receiptData = {
-    receiptNumber: "RCT-2025-00142",
-    paymentDate: "15 Janvier 2025",
-    property: {
-      name: "Résidence Les Palmiers",
-      address: "42 Avenue de la République, Abidjan",
-      code: "RLP-A302",
-    },
-    renter: {
-      name: "Kouadio Jean-Baptiste",
-      phone: "+225 07 12 34 56 78",
-    },
-    owner: {
-      name: "Diomande Properties SARL",
-      phone: "+225 27 21 45 67 89",
-    },
-    payment: {
-      amount: "250 000 FCFA",
-      method: "Wave",
-      transactionId: "WV20250115142356789",
-      period: "Janvier 2025",
-      status: "Payé",
-    },
+  const [payment, setPayment] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchLatestPayment() {
+      try {
+        const res = await api.get("/api/loye/payments/renter/payments/latest");
+        setPayment(res.data);
+      } catch (err) {
+        console.error("Erreur de récupération du dernier paiement :", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchLatestPayment();
+  }, []);
+
+  const downloadPDF = () => {
+    window.print(); // simpler version until html2canvas/jsPDF integrated
   };
+
+  if (loading)
+    return (
+      <div style={styles.center}>
+        Chargement du reçu...
+      </div>
+    );
+
+  if (!payment)
+    return (
+      <div style={styles.center}>
+        <h3>Aucun reçu trouvé</h3>
+        <button onClick={() => (window.location.href = "/loye/dashboard")} style={styles.orangeBtn}>
+          Retour au tableau de bord
+        </button>
+      </div>
+    );
 
   return (
     <main style={styles.main}>
-      <div style={styles.container}>
-        {/* Receipt Card */}
-        <div style={styles.card}>
-          {/* Watermark */}
-          <img src={diomandeLogo} alt="" style={styles.watermark} />
+      <div style={styles.card}>
+        {/* Watermark */}
+        <img src={diomandeLogo} alt="" style={styles.watermark} />
 
-          {/* Header */}
-          <div style={styles.header}>
-            <h1 style={styles.title}>Reçu de Paiement</h1>
-            <div style={styles.badge}>
-              <CheckCircle2 size={16} style={{ marginRight: 6 }} />
-              {receiptData.payment.status}
-            </div>
+        {/* Header */}
+        <h1 style={styles.title}>Reçu de Paiement</h1>
+        <div style={styles.statusRow}>
+          <CheckCircle2 size={18} color="#16a34a" />
+          <span style={styles.status}>Payé</span>
+        </div>
+
+        <hr style={styles.divider} />
+
+        {/* Receipt Info */}
+        <div style={styles.infoGrid}>
+          <div>
+            <p style={styles.label}>NUMÉRO DE REÇU</p>
+            <p style={styles.value}>{payment._id || payment.transactionId}</p>
           </div>
-
-          <hr style={styles.hr} />
-
-          {/* Basic Info */}
-          <div style={styles.rowBetween}>
-            <div>
-              <p style={styles.label}>Numéro de reçu</p>
-              <p style={styles.value}>{receiptData.receiptNumber}</p>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <p style={styles.label}>Date du paiement</p>
-              <p style={styles.value}>{receiptData.paymentDate}</p>
-            </div>
+          <div style={{ textAlign: "right" }}>
+            <p style={styles.label}>DATE DU PAIEMENT</p>
+            <p style={styles.value}>
+              {new Date(payment.createdAt).toLocaleDateString("fr-FR")}
+            </p>
           </div>
+        </div>
 
-          <hr style={styles.hr} />
+        <hr style={styles.divider} />
 
-          {/* Amount */}
-          <div style={styles.amountSection}>
-            <p style={styles.label}>Montant payé</p>
-            <p style={styles.amount}>{receiptData.payment.amount}</p>
-            <p style={styles.period}>{receiptData.payment.period}</p>
-          </div>
-
-          <hr style={styles.hr} />
-
-          {/* Property Info */}
-          <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>📍 Informations du logement</h3>
-            <Field label="Propriété" value={receiptData.property.name} />
-            <Field label="Adresse" value={receiptData.property.address} />
-            <Field label="Code" value={receiptData.property.code} />
-          </div>
-
-          <hr style={styles.hrLight} />
-
-          {/* Renter */}
-          <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>👤 Locataire</h3>
-            <Field label="Nom" value={receiptData.renter.name} />
-            <Field label="Téléphone" value={receiptData.renter.phone} />
-          </div>
-
-          <hr style={styles.hrLight} />
-
-          {/* Owner */}
-          <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>🏠 Propriétaire / Gestionnaire</h3>
-            <Field label="Nom" value={receiptData.owner.name} />
-            <Field label="Téléphone" value={receiptData.owner.phone} />
-          </div>
-
-          <hr style={styles.hrLight} />
-
-          {/* Payment Details */}
-          <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>💳 Détails de transaction</h3>
-            <Field label="Méthode de paiement" value={receiptData.payment.method} />
-            <Field label="ID transaction" value={receiptData.payment.transactionId} />
-          </div>
-
-          <hr style={styles.hr} />
-
-          <p style={styles.footerText}>
-            Merci pour votre paiement et votre confiance 💙
+        {/* Amount */}
+        <div style={styles.amountBox}>
+          <p style={styles.amountLabel}>MONTANT PAYÉ</p>
+          <p style={styles.amountValue}>
+            {Number(payment.netAmount || payment.amount).toLocaleString("fr-FR")} FCFA
+          </p>
+          <p style={styles.periodText}>
+            {payment.period?.month && payment.period?.year
+              ? `${payment.period.month}/${payment.period.year}`
+              : ""}
           </p>
         </div>
 
-        {/* Buttons */}
-        <div style={styles.buttons}>
-          <button style={{ ...styles.button, background: "#fff", color: "#111827", border: "2px solid #111827" }}>
-            <Download size={18} style={{ marginRight: 6 }} /> Télécharger le PDF
-          </button>
-          <button style={{ ...styles.button, background: "#111827", color: "#fff" }}>
-            <Home size={18} style={{ marginRight: 6 }} /> Retour au tableau de bord
-          </button>
+        <hr style={styles.divider} />
+
+        {/* Transaction details */}
+        <div style={styles.section}>
+          <h3 style={styles.sectionTitle}>💳 DÉTAILS DE TRANSACTION</h3>
+          <p><strong>Méthode :</strong> {payment.provider}</p>
+          <p><strong>ID transaction :</strong> {payment.transactionId}</p>
+          <p><strong>Code logement :</strong> {payment.unitCode}</p>
         </div>
+
+        <p style={styles.footer}>Merci pour votre paiement et votre confiance 💙</p>
+      </div>
+
+      {/* Action Buttons */}
+      <div style={styles.actions}>
+        <button onClick={downloadPDF} style={styles.btnBlack}>
+          <Download size={16} style={{ marginRight: 8 }} />
+          Télécharger le PDF
+        </button>
+        <button
+          onClick={() => (window.location.href = "/loye/dashboard")}
+          style={styles.orangeBtn}
+        >
+          <Home size={16} style={{ marginRight: 8 }} />
+          Retour au tableau de bord
+        </button>
       </div>
     </main>
   );
 }
 
-// 🔹 Field Component (inline)
-function Field({ label, value }) {
-  if (!value) return null;
-  return (
-    <div style={styles.fieldRow}>
-      <span style={styles.fieldLabel}>{label}</span>
-      <span style={styles.fieldValue}>{value}</span>
-    </div>
-  );
-}
-
-// 🎨 Inline Styles
 const styles = {
   main: {
-    background: "#f9fafb",
     minHeight: "100vh",
-    padding: "40px 16px",
-    display: "flex",
-    justifyContent: "center",
-  },
-  container: {
-    width: "100%",
-    maxWidth: 600,
+    background: "#f9fafb",
     display: "flex",
     flexDirection: "column",
-    gap: "1.5rem",
+    alignItems: "center",
+    padding: "2rem",
   },
   card: {
-    position: "relative",
     background: "#fff",
-    borderRadius: 16,
-    padding: "32px 24px",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-    overflow: "hidden",
+    borderRadius: "12px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+    padding: "2rem",
+    maxWidth: "550px",
+    width: "100%",
+    position: "relative",
   },
   watermark: {
     position: "absolute",
-    right: 20,
-    bottom: 20,
+    bottom: "20px",
+    right: "20px",
+    width: "80px",
     opacity: 0.05,
-    width: 120,
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: 10,
   },
   title: {
-    fontSize: 26,
-    fontWeight: 700,
-    marginBottom: 8,
+    textAlign: "center",
+    fontSize: "1.8rem",
+    fontWeight: "bold",
+    marginBottom: "0.5rem",
   },
-  badge: {
-    display: "inline-flex",
-    alignItems: "center",
-    background: "#dcfce7",
-    color: "#15803d",
-    fontWeight: 600,
-    padding: "6px 12px",
-    borderRadius: 999,
-    fontSize: 14,
-  },
-  hr: {
-    border: "none",
-    borderTop: "1px solid #e5e7eb",
-    margin: "20px 0",
-  },
-  hrLight: {
-    border: "none",
-    borderTop: "1px solid #f3f4f6",
-    margin: "18px 0",
-  },
-  rowBetween: {
+  statusRow: {
     display: "flex",
-    justifyContent: "space-between",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "6px",
+    color: "#16a34a",
+    marginBottom: "1rem",
+  },
+  status: { fontWeight: 600 },
+  divider: { border: "none", borderTop: "1px solid #e5e7eb", margin: "1rem 0" },
+  infoGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "1rem",
+    alignItems: "center",
   },
   label: {
-    fontSize: 12,
+    fontSize: "0.75rem",
     color: "#6b7280",
-    textTransform: "uppercase",
     letterSpacing: "0.05em",
   },
-  value: {
-    fontSize: 15,
-    fontWeight: 600,
-    color: "#111827",
-  },
-  amountSection: {
-    textAlign: "center",
-  },
-  amount: {
-    fontSize: 36,
-    fontWeight: 800,
-    color: "#f97316",
-  },
-  period: {
-    color: "#6b7280",
-    fontSize: 14,
-  },
-  section: {
-    marginBottom: 10,
-  },
+  value: { fontWeight: 600, color: "#111827" },
+  amountBox: { textAlign: "center", margin: "1.5rem 0" },
+  amountLabel: { color: "#6b7280", fontSize: "0.9rem", marginBottom: "4px" },
+  amountValue: { fontSize: "2.4rem", color: "#f97316", fontWeight: "bold" },
+  periodText: { color: "#6b7280", fontSize: "0.9rem" },
+  section: { marginTop: "1.2rem" },
   sectionTitle: {
-    fontSize: 12,
-    color: "#6b7280",
+    fontSize: "0.85rem",
     textTransform: "uppercase",
-    marginBottom: 6,
-    fontWeight: 600,
-  },
-  fieldRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    fontSize: 14,
-    margin: "4px 0",
-  },
-  fieldLabel: {
     color: "#6b7280",
+    marginBottom: "0.5rem",
   },
-  fieldValue: {
-    fontWeight: 600,
-    color: "#111827",
-  },
-  footerText: {
+  footer: {
     textAlign: "center",
-    color: "#6b7280",
     fontStyle: "italic",
-    fontSize: 14,
+    color: "#6b7280",
+    marginTop: "1.5rem",
   },
-  buttons: {
+  actions: {
     display: "flex",
-    gap: 12,
-  },
-  button: {
-    flex: 1,
-    display: "inline-flex",
-    alignItems: "center",
     justifyContent: "center",
-    padding: "12px 0",
+    gap: "1rem",
+    marginTop: "1.5rem",
+  },
+  btnBlack: {
+    background: "#111827",
+    color: "#fff",
+    border: "2px solid #111827",
+    borderRadius: "8px",
+    padding: "0.7rem 1.2rem",
+    display: "flex",
+    alignItems: "center",
     fontWeight: 600,
-    borderRadius: 8,
-    fontSize: 15,
     cursor: "pointer",
-    transition: "0.3s",
+  },
+  orangeBtn: {
+    background: "#f97316",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    padding: "0.7rem 1.2rem",
+    display: "flex",
+    alignItems: "center",
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  center: {
+    textAlign: "center",
+    padding: "2rem",
   },
 };
