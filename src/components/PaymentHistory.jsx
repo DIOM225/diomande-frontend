@@ -1,8 +1,12 @@
 import EmptyState from "./EmptyState";
 
 function PaymentHistory({ history, historyLoading, formatFCFA }) {
+  const viewReceipt = (id) => {
+    window.location.href = `/loye/receipt/${id}`;
+  };
+
   return (
-    <div className="loye-card" style={styles.card}>
+    <div style={styles.card}>
       <h3 style={styles.cardTitle}>🧾 Historique des paiements</h3>
 
       {historyLoading ? (
@@ -17,29 +21,39 @@ function PaymentHistory({ history, historyLoading, formatFCFA }) {
           {history.map((p) => {
             const rawStatus = p.providerStatus || p.status;
             const displayStatus = normalizeStatus(rawStatus);
+            const color = statusColor(displayStatus);
 
             return (
-              <div key={p._id || p.transactionId} style={styles.item}>
-                <div style={styles.colLeft}>
-                  {p.period?.month}/{p.period?.year} — {p.unitCode}
+              <div
+                key={p._id || p.transactionId}
+                style={styles.item}
+                onClick={() => viewReceipt(p._id)}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "#fff7ed")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "#f9fafb")
+                }
+              >
+                <div style={styles.left}>
+                  <div style={styles.period}>
+                    {p.period?.month}/{p.period?.year} —{" "}
+                    <strong>{p.unitCode}</strong>
+                  </div>
                   <div style={styles.sub}>{p.transactionId}</div>
                 </div>
 
-                <div style={styles.colAmount}>
-                  {formatFCFA(
-                    typeof p.netAmount === "number" && p.netAmount > 0
-                      ? p.netAmount
-                      : p.amount
-                  )}
-                </div>
-
-                <div
-                  style={{
-                    ...styles.colStatus,
-                    color: statusColor(displayStatus),
-                  }}
-                >
-                  {formatStatusLabel(displayStatus)}
+                <div style={styles.right}>
+                  <span style={styles.amount}>
+                    {formatFCFA(
+                      typeof p.netAmount === "number" && p.netAmount > 0
+                        ? p.netAmount
+                        : p.amount
+                    )}
+                  </span>
+                  <span style={{ ...styles.status, color }}>
+                    {formatStatusLabel(displayStatus)}
+                  </span>
                 </div>
               </div>
             );
@@ -50,25 +64,23 @@ function PaymentHistory({ history, historyLoading, formatFCFA }) {
   );
 }
 
-// 🔍 Normalize status to consistent values
+// 🔍 Normalize status
 function normalizeStatus(status) {
   const s = (status || "").toUpperCase();
-
   if (["ACCEPTED", "PAID", "COMPLETE"].includes(s)) return "ACCEPTED";
   if (["REFUSED", "FAILED", "ERROR"].includes(s)) return "REFUSED";
   if (["PENDING", "CREATED", "NEW"].includes(s)) return "PENDING";
-
   return s || "CREATED";
 }
 
-// 🎨 Orange-theme color palette
+// 🎨 Color palette
 function statusColor(status) {
-  if (status === "ACCEPTED") return "#15803d"; // success green
+  if (status === "ACCEPTED") return "#15803d"; // green
   if (status === "REFUSED") return "#dc2626"; // red
-  return "#ff6a00"; // orange pending
+  return "#ff6a00"; // orange
 }
 
-// 🏷️ Label formatting
+// 🏷️ Label
 function formatStatusLabel(status) {
   const labels = {
     ACCEPTED: "✅ Payé",
@@ -81,14 +93,11 @@ function formatStatusLabel(status) {
 
 const styles = {
   card: {
-    backgroundColor: "#ffffff",
+    background: "#fff",
     padding: "1.5rem",
-    borderRadius: "14px",
+    borderRadius: 14,
     boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
     border: "1px solid #f1f5f9",
-    fontFamily:
-      'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-    transition: "all 0.2s ease-in-out",
   },
   cardTitle: {
     fontSize: "1.2rem",
@@ -104,27 +113,42 @@ const styles = {
     animation: "skel 1.4s ease infinite",
   },
   item: {
-    display: "grid",
-    gridTemplateColumns: "1fr auto auto",
-    gap: 10,
+    display: "flex",
+    justifyContent: "space-between",
     alignItems: "center",
-    padding: "12px 14px",
+    padding: "14px 16px",
     background: "#f9fafb",
-    border: "1px solid #f1f5f9",
     borderRadius: 10,
-    transition: "all 0.2s ease-in-out",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    border: "1px solid #f1f5f9",
   },
-  itemHover: {
-    background: "#fff7ed",
-    borderColor: "#ffedd5",
+  left: {
+    display: "flex",
+    flexDirection: "column",
   },
-  colLeft: {
-    fontWeight: 600,
-    color: "#1e293b",
+  period: {
+    fontWeight: 700,
+    color: "#0f172a",
+    fontSize: 15,
   },
-  sub: { fontSize: 12, color: "#64748b" },
-  colAmount: { fontWeight: 700, color: "#0f172a" },
-  colStatus: { fontWeight: 700 },
+  sub: {
+    fontSize: 12,
+    color: "#64748b",
+  },
+  right: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+  },
+  amount: {
+    fontWeight: 800,
+    color: "#111827",
+  },
+  status: {
+    fontWeight: 700,
+    fontSize: 14,
+  },
 };
 
 export default PaymentHistory;
