@@ -1,20 +1,26 @@
+// client/src/pages/loye/ReceiptPage.jsx
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import api from "../../utils/axiosInstance";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { Download, Home, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ReceiptField } from "@/components/ReceiptField";
+import diomandeLogo from "@/assets/diomande-logo.png";
+import api from "@/utils/axiosInstance";
 
 export default function ReceiptPage() {
-  const navigate = useNavigate();
   const [payment, setPayment] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // ✅ Fetch latest confirmed payment (correct path)
+  // ✅ Fetch latest payment
   useEffect(() => {
     async function fetchLatestPayment() {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
+          setError("Utilisateur non connecté");
           setLoading(false);
           return;
         }
@@ -22,7 +28,8 @@ export default function ReceiptPage() {
         const res = await api.get("/api/loye/payments/renter/payments/latest");
         setPayment(res.data);
       } catch (err) {
-        console.error("Erreur de récupération du dernier paiement :", err);
+        console.error("Erreur de récupération du reçu :", err);
+        setError("Aucun reçu trouvé");
       } finally {
         setLoading(false);
       }
@@ -31,178 +38,181 @@ export default function ReceiptPage() {
     fetchLatestPayment();
   }, []);
 
-  // ✅ Download as PDF
-  const downloadPDF = async () => {
-    const element = document.getElementById("receipt-container");
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`Recu-${payment?._id || "Paiement"}.pdf`);
+  const handleDownloadPDF = () => {
+    window.print(); // simple version — print/download PDF
   };
 
-  if (loading) return <div style={styles.center}>Chargement du reçu...</div>;
+  const handleReturnToDashboard = () => {
+    window.location.href = "/loye/dashboard";
+  };
 
-  if (!payment)
+  if (loading)
     return (
-      <div style={styles.center}>
-        <h3>Aucun reçu trouvé</h3>
-        <button onClick={() => navigate("/loye/dashboard")} style={styles.btnDark}>
-          Retour au tableau de bord
-        </button>
+      <div className="flex justify-center items-center h-screen text-lg">
+        Chargement du reçu...
       </div>
     );
 
-  const { renter, owner, property } = payment;
+  if (error || !payment)
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-center">
+        <h3 className="text-lg font-semibold mb-4">Aucun reçu trouvé</h3>
+        <Button onClick={handleReturnToDashboard}>Retour au tableau de bord</Button>
+      </div>
+    );
+
+  // ✅ Prepare clean fields
+  const property = payment.property || {};
+  const renter = payment.renter || {};
+  const owner = payment.owner || {};
 
   return (
-    <div style={styles.wrapper}>
-      <div id="receipt-container" style={styles.card}>
-        <h2 style={styles.title}>🧾 Reçu de paiement</h2>
+    <main className="min-h-screen bg-background py-8 px-4 sm:py-12">
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Receipt Card */}
+        <Card className="relative overflow-hidden shadow-xl border-border">
+          {/* Watermark */}
+          <div className="absolute bottom-6 right-6 opacity-5 pointer-events-none">
+            <img src={diomandeLogo} alt="Diomande watermark" className="w-32 h-32" />
+          </div>
 
-        <div style={styles.headerRow}>
-          <div><strong>Numéro de reçu :</strong> {payment._id}</div>
-          <div><strong>Date :</strong> {new Date(payment.createdAt).toLocaleDateString("fr-FR")}</div>
-        </div>
+          <div className="p-8 sm:p-10 space-y-8 relative">
+            {/* Header */}
+            <div className="text-center space-y-2 pb-2">
+              <h1 className="text-3xl font-bold text-foreground">Reçu de Paiement</h1>
+              <div className="flex justify-center items-center gap-2">
+                <Badge className="bg-green-600 text-white gap-1.5 px-3 py-1">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Payé
+                </Badge>
+              </div>
+            </div>
 
-        <hr style={styles.divider} />
+            <Separator />
 
-        <div style={styles.section}>
-          <h3 style={styles.subTitle}>📍 Logement</h3>
-          <p><strong>Nom de la propriété :</strong> {property?.name || "—"}</p>
-          <p><strong>Adresse :</strong> {property?.address || "—"}</p>
-          <p><strong>Code logement :</strong> {payment.unitCode}</p>
-        </div>
+            {/* Receipt Info */}
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase mb-1.5">
+                  Numéro de reçu
+                </p>
+                <p className="text-sm font-semibold">
+                  {payment._id || "—"}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground uppercase mb-1.5">
+                  Date du paiement
+                </p>
+                <p className="text-sm font-semibold">
+                  {new Date(payment.createdAt).toLocaleDateString("fr-FR")}
+                </p>
+              </div>
+            </div>
 
-        <div style={styles.section}>
-          <h3 style={styles.subTitle}>👤 Locataire</h3>
-          <p><strong>Nom :</strong> {renter?.name || "—"}</p>
-          <p><strong>Téléphone :</strong> {renter?.phone || "—"}</p>
-        </div>
+            <Separator />
 
-        <div style={styles.section}>
-          <h3 style={styles.subTitle}>🏠 Propriétaire / Gestionnaire</h3>
-          <p><strong>Nom :</strong> {owner?.name || "—"}</p>
-          <p><strong>Téléphone :</strong> {owner?.phone || "—"}</p>
-        </div>
+            {/* Amount Highlight */}
+            <div className="text-center py-4 space-y-2">
+              <p className="text-sm text-muted-foreground uppercase tracking-wide">
+                Montant payé
+              </p>
+              <p className="text-5xl font-bold text-orange-500">
+                {(payment.netAmount || payment.amount)?.toLocaleString("fr-FR")} FCFA
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {payment.period?.month
+                  ? `${payment.period.month}/${payment.period.year}`
+                  : ""}
+              </p>
+            </div>
 
-        <div style={styles.section}>
-          <h3 style={styles.subTitle}>💰 Détails du paiement</h3>
-          <p><strong>Montant payé :</strong> {Number(payment.netAmount || payment.amount).toLocaleString("fr-FR")} FCFA</p>
-          <p><strong>Méthode :</strong> {payment.provider}</p>
-          <p><strong>ID Transaction :</strong> {payment.transactionId || "—"}</p>
-          <p><strong>Période :</strong> {payment.period ? `${payment.period.month}/${payment.period.year}` : "—"}</p>
-          <p><strong>Statut :</strong> <span style={{ color: "#059669", fontWeight: 600 }}>Payé ✅</span></p>
-        </div>
+            <Separator />
 
-        <div style={styles.footerNote}>
-          Merci pour votre paiement et votre confiance 💙
+            {/* All Details */}
+            <div className="space-y-6">
+              {/* Property */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  📍 Informations du logement
+                </h3>
+                <div className="space-y-2.5 pl-1">
+                  <ReceiptField label="Propriété" value={property.name || "—"} />
+                  <ReceiptField label="Adresse" value={property.address || "—"} />
+                  <ReceiptField label="Code" value={payment.unitCode || "—"} />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Renter */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  👤 Locataire
+                </h3>
+                <div className="space-y-2.5 pl-1">
+                  <ReceiptField label="Nom" value={renter.name || "—"} />
+                  <ReceiptField label="Téléphone" value={renter.phone || "—"} />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Owner / Manager */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  🏠 Propriétaire / Gestionnaire
+                </h3>
+                <div className="space-y-2.5 pl-1">
+                  <ReceiptField label="Nom" value={owner.name || "—"} />
+                  <ReceiptField label="Téléphone" value={owner.phone || "—"} />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Payment Details */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  💳 Détails de transaction
+                </h3>
+                <div className="space-y-2.5 pl-1">
+                  <ReceiptField label="Méthode de paiement" value={payment.provider || "—"} />
+                  <ReceiptField label="ID transaction" value={payment.transactionId || "—"} />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Footer */}
+            <p className="text-center text-sm text-muted-foreground italic pt-2">
+              Merci pour votre paiement et votre confiance 💙
+            </p>
+          </div>
+        </Card>
+
+        {/* Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={handleDownloadPDF}
+            className="w-full bg-card hover:bg-accent border-2 transition-all hover:shadow-md"
+          >
+            <Download className="w-5 h-5 mr-2" />
+            Télécharger le PDF
+          </Button>
+          <Button
+            size="lg"
+            onClick={handleReturnToDashboard}
+            className="w-full bg-orange-500 hover:bg-orange-600 transition-all hover:shadow-lg"
+          >
+            <Home className="w-5 h-5 mr-2" />
+            Retour au tableau de bord
+          </Button>
         </div>
       </div>
-
-      <div style={styles.actions}>
-        <button onClick={downloadPDF} style={styles.btnDark}>
-          Télécharger le PDF
-        </button>
-        <button onClick={() => navigate("/loye/dashboard")} style={styles.btnOrange}>
-          Retour au tableau de bord
-        </button>
-      </div>
-    </div>
+    </main>
   );
 }
-
-// ✅ Clean professional style
-const styles = {
-  wrapper: {
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#f3f4f6",
-    padding: "clamp(1rem, 5vw, 2rem)",
-  },
-  card: {
-    background: "#fff",
-    padding: "clamp(2rem, 5vw, 3rem)",
-    borderRadius: "20px",
-    boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-    width: "100%",
-    maxWidth: "650px",
-    lineHeight: 1.6,
-  },
-  title: {
-    textAlign: "center",
-    fontSize: "1.8rem",
-    fontWeight: 700,
-    marginBottom: "1.5rem",
-  },
-  subTitle: {
-    fontSize: "1.1rem",
-    marginBottom: "0.5rem",
-    color: "#111827",
-  },
-  headerRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: "0.8rem",
-    marginBottom: "0.5rem",
-  },
-  section: {
-    margin: "1rem 0",
-    background: "#f9fafb",
-    padding: "1rem 1.2rem",
-    borderRadius: "10px",
-  },
-  divider: {
-    border: "none",
-    borderTop: "1px solid #e5e7eb",
-    margin: "1rem 0",
-  },
-  actions: {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: "1rem",
-    marginTop: "1.5rem",
-  },
-  btnDark: {
-    background: "#111827",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    padding: "0.9rem 1.4rem",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: "1rem",
-    minWidth: "180px",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-  },
-  btnOrange: {
-    background: "#f97316",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    padding: "0.9rem 1.4rem",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: "1rem",
-    minWidth: "180px",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-  },
-  footerNote: {
-    textAlign: "center",
-    marginTop: "1.5rem",
-    fontStyle: "italic",
-    color: "#6b7280",
-  },
-  center: {
-    textAlign: "center",
-    padding: "2rem",
-    fontSize: "1.1rem",
-  },
-};
