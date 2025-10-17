@@ -1,51 +1,39 @@
 // client/src/pages/loye/ReceiptPage.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 export default function ReceiptPage() {
-  const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
-
   const [payment, setPayment] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch payment info
+  // ✅ Fetch latest confirmed payment
   useEffect(() => {
-    async function fetchData() {
+    async function fetchLatestPayment() {
       try {
-        const urlParams = new URLSearchParams(location.search);
-
-        // ✅ Try to read both ?id= and ?tx= from URL
-        const paymentId = id || urlParams.get("id") || urlParams.get("tx");
-        if (!paymentId) {
-          setLoading(false);
-          return;
-        }
-
         const token = localStorage.getItem("token");
         if (!token) {
           setLoading(false);
           return;
         }
 
-        const res = await axios.get(`/api/loye/payments/${paymentId}`, {
+        const res = await axios.get(`/api/loye/renter/payments/latest`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         setPayment(res.data);
       } catch (err) {
-        console.error("Erreur de récupération du reçu :", err);
+        console.error("Erreur de récupération du dernier paiement :", err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchData();
-  }, [id, location.search]);
+    fetchLatestPayment();
+  }, []);
 
   // ✅ Download receipt as PDF
   const downloadPDF = async () => {
@@ -59,7 +47,6 @@ export default function ReceiptPage() {
     pdf.save(`Recu-${payment?._id || "Paiement"}.pdf`);
   };
 
-  // ✅ Handle loading and missing receipt
   if (loading) return <div style={styles.center}>Chargement du reçu...</div>;
 
   if (!payment)
@@ -116,7 +103,7 @@ export default function ReceiptPage() {
   );
 }
 
-// ✅ Responsive styles
+// ✅ Styles (same visual)
 const styles = {
   wrapper: {
     minHeight: "100vh",
