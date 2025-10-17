@@ -1,26 +1,32 @@
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Download, Home, CheckCircle2 } from "lucide-react";
 import api from "../../utils/axiosInstance";
 
 const diomandeLogo = "/favicon.ico";
 
 export default function ReceiptPage() {
+  const { id } = useParams(); // ✅ Get receipt id from URL if present
   const [payment, setPayment] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ✅ Fetch the correct payment (specific or latest)
   useEffect(() => {
-    async function fetchLatestPayment() {
+    async function fetchPayment() {
       try {
-        const res = await api.get("/api/loye/payments/renter/payments/latest");
+        const endpoint = id
+          ? `/api/loye/payments/${id}` // fetch specific receipt
+          : `/api/loye/payments/renter/payments/latest`; // fallback
+        const res = await api.get(endpoint);
         setPayment(res.data);
       } catch (err) {
-        console.error("Erreur de récupération du dernier paiement :", err);
+        console.error("Erreur de récupération du paiement :", err);
       } finally {
         setLoading(false);
       }
     }
-    fetchLatestPayment();
-  }, []);
+    fetchPayment();
+  }, [id]);
 
   if (loading)
     return (
