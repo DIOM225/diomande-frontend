@@ -1,4 +1,3 @@
-// client/src/pages/loye/ReceiptPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/axiosInstance";
@@ -10,7 +9,7 @@ export default function ReceiptPage() {
   const [payment, setPayment] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch latest confirmed payment
+  // ✅ Fetch latest confirmed payment (correct path)
   useEffect(() => {
     async function fetchLatestPayment() {
       try {
@@ -20,7 +19,7 @@ export default function ReceiptPage() {
           return;
         }
 
-        const res = await api.get("/loye/payments/renter/payments/latest");
+        const res = await api.get("/api/loye/payments/renter/payments/latest");
         setPayment(res.data);
       } catch (err) {
         console.error("Erreur de récupération du dernier paiement :", err);
@@ -32,7 +31,7 @@ export default function ReceiptPage() {
     fetchLatestPayment();
   }, []);
 
-  // ✅ Download receipt as PDF
+  // ✅ Download as PDF
   const downloadPDF = async () => {
     const element = document.getElementById("receipt-container");
     const canvas = await html2canvas(element, { scale: 2 });
@@ -63,76 +62,39 @@ export default function ReceiptPage() {
       <div id="receipt-container" style={styles.card}>
         <h2 style={styles.title}>🧾 Reçu de paiement</h2>
 
-        <div style={styles.sectionGrid}>
-          <div>
-            <strong>Numéro de reçu :</strong> {payment._id}
-          </div>
-          <div>
-            <strong>Date :</strong>{" "}
-            {new Date(payment.createdAt).toLocaleDateString("fr-FR")}
-          </div>
+        <div style={styles.headerRow}>
+          <div><strong>Numéro de reçu :</strong> {payment._id}</div>
+          <div><strong>Date :</strong> {new Date(payment.createdAt).toLocaleDateString("fr-FR")}</div>
         </div>
 
         <hr style={styles.divider} />
 
         <div style={styles.section}>
-          <h3 style={styles.subTitle}>📍 Informations du logement</h3>
-          <p>
-            <strong>Nom de la propriété :</strong>{" "}
-            {property?.name || "—"}
-          </p>
-          <p>
-            <strong>Adresse :</strong>{" "}
-            {property?.address || "—"}
-          </p>
-          <p>
-            <strong>Code logement :</strong> {payment.unitCode}
-          </p>
+          <h3 style={styles.subTitle}>📍 Logement</h3>
+          <p><strong>Nom de la propriété :</strong> {property?.name || "—"}</p>
+          <p><strong>Adresse :</strong> {property?.address || "—"}</p>
+          <p><strong>Code logement :</strong> {payment.unitCode}</p>
         </div>
 
         <div style={styles.section}>
           <h3 style={styles.subTitle}>👤 Locataire</h3>
-          <p>
-            <strong>Nom :</strong> {renter?.name || "—"}
-          </p>
-          <p>
-            <strong>Téléphone :</strong> {renter?.phone || "—"}
-          </p>
+          <p><strong>Nom :</strong> {renter?.name || "—"}</p>
+          <p><strong>Téléphone :</strong> {renter?.phone || "—"}</p>
         </div>
 
         <div style={styles.section}>
           <h3 style={styles.subTitle}>🏠 Propriétaire / Gestionnaire</h3>
-          <p>
-            <strong>Nom :</strong> {owner?.name || "—"}
-          </p>
-          <p>
-            <strong>Téléphone :</strong> {owner?.phone || "—"}
-          </p>
+          <p><strong>Nom :</strong> {owner?.name || "—"}</p>
+          <p><strong>Téléphone :</strong> {owner?.phone || "—"}</p>
         </div>
 
         <div style={styles.section}>
           <h3 style={styles.subTitle}>💰 Détails du paiement</h3>
-          <p>
-            <strong>Montant payé :</strong>{" "}
-            {Number(payment.netAmount || payment.amount).toLocaleString("fr-FR")} FCFA
-          </p>
-          <p>
-            <strong>Méthode :</strong> {payment.provider}
-          </p>
-          <p>
-            <strong>ID Transaction :</strong>{" "}
-            {payment.transactionId || "—"}
-          </p>
-          <p>
-            <strong>Période :</strong>{" "}
-            {payment.period
-              ? `${payment.period.month}/${payment.period.year}`
-              : "—"}
-          </p>
-          <p>
-            <strong>Statut :</strong>{" "}
-            <span style={{ color: "#059669", fontWeight: 600 }}>Payé ✅</span>
-          </p>
+          <p><strong>Montant payé :</strong> {Number(payment.netAmount || payment.amount).toLocaleString("fr-FR")} FCFA</p>
+          <p><strong>Méthode :</strong> {payment.provider}</p>
+          <p><strong>ID Transaction :</strong> {payment.transactionId || "—"}</p>
+          <p><strong>Période :</strong> {payment.period ? `${payment.period.month}/${payment.period.year}` : "—"}</p>
+          <p><strong>Statut :</strong> <span style={{ color: "#059669", fontWeight: 600 }}>Payé ✅</span></p>
         </div>
 
         <div style={styles.footerNote}>
@@ -144,10 +106,7 @@ export default function ReceiptPage() {
         <button onClick={downloadPDF} style={styles.btnDark}>
           Télécharger le PDF
         </button>
-        <button
-          onClick={() => navigate("/loye/dashboard")}
-          style={styles.btnOrange}
-        >
+        <button onClick={() => navigate("/loye/dashboard")} style={styles.btnOrange}>
           Retour au tableau de bord
         </button>
       </div>
@@ -155,7 +114,7 @@ export default function ReceiptPage() {
   );
 }
 
-// ✅ Clean modern styles
+// ✅ Clean professional style
 const styles = {
   wrapper: {
     minHeight: "100vh",
@@ -168,36 +127,36 @@ const styles = {
   },
   card: {
     background: "#fff",
-    padding: "clamp(1.5rem, 5vw, 3rem)",
-    borderRadius: "16px",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+    padding: "clamp(2rem, 5vw, 3rem)",
+    borderRadius: "20px",
+    boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
     width: "100%",
-    maxWidth: "600px",
+    maxWidth: "650px",
     lineHeight: 1.6,
   },
   title: {
-    marginBottom: "1.5rem",
     textAlign: "center",
-    fontSize: "1.7rem",
-    fontWeight: "700",
+    fontSize: "1.8rem",
+    fontWeight: 700,
+    marginBottom: "1.5rem",
   },
   subTitle: {
-    marginBottom: "0.5rem",
     fontSize: "1.1rem",
+    marginBottom: "0.5rem",
     color: "#111827",
+  },
+  headerRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: "0.8rem",
+    marginBottom: "0.5rem",
   },
   section: {
     margin: "1rem 0",
     background: "#f9fafb",
-    padding: "1rem",
-    borderRadius: "8px",
-  },
-  sectionGrid: {
-    display: "flex",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: "0.5rem",
-    marginBottom: "0.5rem",
+    padding: "1rem 1.2rem",
+    borderRadius: "10px",
   },
   divider: {
     border: "none",
@@ -216,7 +175,7 @@ const styles = {
     color: "#fff",
     border: "none",
     borderRadius: "10px",
-    padding: "0.9rem 1.3rem",
+    padding: "0.9rem 1.4rem",
     cursor: "pointer",
     fontWeight: 600,
     fontSize: "1rem",
@@ -228,7 +187,7 @@ const styles = {
     color: "#fff",
     border: "none",
     borderRadius: "10px",
-    padding: "0.9rem 1.3rem",
+    padding: "0.9rem 1.4rem",
     cursor: "pointer",
     fontWeight: 600,
     fontSize: "1rem",
@@ -237,7 +196,7 @@ const styles = {
   },
   footerNote: {
     textAlign: "center",
-    marginTop: "1.2rem",
+    marginTop: "1.5rem",
     fontStyle: "italic",
     color: "#6b7280",
   },
