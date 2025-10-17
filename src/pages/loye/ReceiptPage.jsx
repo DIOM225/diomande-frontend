@@ -1,218 +1,273 @@
-// client/src/pages/loye/ReceiptPage.jsx
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Download, Home, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ReceiptField } from "@/components/ReceiptField";
-import diomandeLogo from "@/assets/diomande-logo.png";
-import api from "@/utils/axiosInstance";
+const diomandeLogo = "/favicon.ico";
+
 
 export default function ReceiptPage() {
-  const [payment, setPayment] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // ✅ Fetch latest payment
-  useEffect(() => {
-    async function fetchLatestPayment() {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          setError("Utilisateur non connecté");
-          setLoading(false);
-          return;
-        }
-
-        const res = await api.get("/api/loye/payments/renter/payments/latest");
-        setPayment(res.data);
-      } catch (err) {
-        console.error("Erreur de récupération du reçu :", err);
-        setError("Aucun reçu trouvé");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchLatestPayment();
-  }, []);
-
-  const handleDownloadPDF = () => {
-    window.print(); // simple version — print/download PDF
+  const receiptData = {
+    receiptNumber: "RCT-2025-00142",
+    paymentDate: "15 Janvier 2025",
+    property: {
+      name: "Résidence Les Palmiers",
+      address: "42 Avenue de la République, Abidjan",
+      code: "RLP-A302",
+    },
+    renter: {
+      name: "Kouadio Jean-Baptiste",
+      phone: "+225 07 12 34 56 78",
+    },
+    owner: {
+      name: "Diomande Properties SARL",
+      phone: "+225 27 21 45 67 89",
+    },
+    payment: {
+      amount: "250 000 FCFA",
+      method: "Wave",
+      transactionId: "WV20250115142356789",
+      period: "Janvier 2025",
+      status: "Payé",
+    },
   };
-
-  const handleReturnToDashboard = () => {
-    window.location.href = "/loye/dashboard";
-  };
-
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-screen text-lg">
-        Chargement du reçu...
-      </div>
-    );
-
-  if (error || !payment)
-    return (
-      <div className="flex flex-col items-center justify-center h-screen text-center">
-        <h3 className="text-lg font-semibold mb-4">Aucun reçu trouvé</h3>
-        <Button onClick={handleReturnToDashboard}>Retour au tableau de bord</Button>
-      </div>
-    );
-
-  // ✅ Prepare clean fields
-  const property = payment.property || {};
-  const renter = payment.renter || {};
-  const owner = payment.owner || {};
 
   return (
-    <main className="min-h-screen bg-background py-8 px-4 sm:py-12">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <main style={styles.main}>
+      <div style={styles.container}>
         {/* Receipt Card */}
-        <Card className="relative overflow-hidden shadow-xl border-border">
+        <div style={styles.card}>
           {/* Watermark */}
-          <div className="absolute bottom-6 right-6 opacity-5 pointer-events-none">
-            <img src={diomandeLogo} alt="Diomande watermark" className="w-32 h-32" />
+          <img src={diomandeLogo} alt="" style={styles.watermark} />
+
+          {/* Header */}
+          <div style={styles.header}>
+            <h1 style={styles.title}>Reçu de Paiement</h1>
+            <div style={styles.badge}>
+              <CheckCircle2 size={16} style={{ marginRight: 6 }} />
+              {receiptData.payment.status}
+            </div>
           </div>
 
-          <div className="p-8 sm:p-10 space-y-8 relative">
-            {/* Header */}
-            <div className="text-center space-y-2 pb-2">
-              <h1 className="text-3xl font-bold text-foreground">Reçu de Paiement</h1>
-              <div className="flex justify-center items-center gap-2">
-                <Badge className="bg-green-600 text-white gap-1.5 px-3 py-1">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Payé
-                </Badge>
-              </div>
+          <hr style={styles.hr} />
+
+          {/* Basic Info */}
+          <div style={styles.rowBetween}>
+            <div>
+              <p style={styles.label}>Numéro de reçu</p>
+              <p style={styles.value}>{receiptData.receiptNumber}</p>
             </div>
-
-            <Separator />
-
-            {/* Receipt Info */}
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase mb-1.5">
-                  Numéro de reçu
-                </p>
-                <p className="text-sm font-semibold">
-                  {payment._id || "—"}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground uppercase mb-1.5">
-                  Date du paiement
-                </p>
-                <p className="text-sm font-semibold">
-                  {new Date(payment.createdAt).toLocaleDateString("fr-FR")}
-                </p>
-              </div>
+            <div style={{ textAlign: "right" }}>
+              <p style={styles.label}>Date du paiement</p>
+              <p style={styles.value}>{receiptData.paymentDate}</p>
             </div>
-
-            <Separator />
-
-            {/* Amount Highlight */}
-            <div className="text-center py-4 space-y-2">
-              <p className="text-sm text-muted-foreground uppercase tracking-wide">
-                Montant payé
-              </p>
-              <p className="text-5xl font-bold text-orange-500">
-                {(payment.netAmount || payment.amount)?.toLocaleString("fr-FR")} FCFA
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {payment.period?.month
-                  ? `${payment.period.month}/${payment.period.year}`
-                  : ""}
-              </p>
-            </div>
-
-            <Separator />
-
-            {/* All Details */}
-            <div className="space-y-6">
-              {/* Property */}
-              <div className="space-y-3">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  📍 Informations du logement
-                </h3>
-                <div className="space-y-2.5 pl-1">
-                  <ReceiptField label="Propriété" value={property.name || "—"} />
-                  <ReceiptField label="Adresse" value={property.address || "—"} />
-                  <ReceiptField label="Code" value={payment.unitCode || "—"} />
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Renter */}
-              <div className="space-y-3">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  👤 Locataire
-                </h3>
-                <div className="space-y-2.5 pl-1">
-                  <ReceiptField label="Nom" value={renter.name || "—"} />
-                  <ReceiptField label="Téléphone" value={renter.phone || "—"} />
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Owner / Manager */}
-              <div className="space-y-3">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  🏠 Propriétaire / Gestionnaire
-                </h3>
-                <div className="space-y-2.5 pl-1">
-                  <ReceiptField label="Nom" value={owner.name || "—"} />
-                  <ReceiptField label="Téléphone" value={owner.phone || "—"} />
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Payment Details */}
-              <div className="space-y-3">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  💳 Détails de transaction
-                </h3>
-                <div className="space-y-2.5 pl-1">
-                  <ReceiptField label="Méthode de paiement" value={payment.provider || "—"} />
-                  <ReceiptField label="ID transaction" value={payment.transactionId || "—"} />
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Footer */}
-            <p className="text-center text-sm text-muted-foreground italic pt-2">
-              Merci pour votre paiement et votre confiance 💙
-            </p>
           </div>
-        </Card>
+
+          <hr style={styles.hr} />
+
+          {/* Amount */}
+          <div style={styles.amountSection}>
+            <p style={styles.label}>Montant payé</p>
+            <p style={styles.amount}>{receiptData.payment.amount}</p>
+            <p style={styles.period}>{receiptData.payment.period}</p>
+          </div>
+
+          <hr style={styles.hr} />
+
+          {/* Property Info */}
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>📍 Informations du logement</h3>
+            <Field label="Propriété" value={receiptData.property.name} />
+            <Field label="Adresse" value={receiptData.property.address} />
+            <Field label="Code" value={receiptData.property.code} />
+          </div>
+
+          <hr style={styles.hrLight} />
+
+          {/* Renter */}
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>👤 Locataire</h3>
+            <Field label="Nom" value={receiptData.renter.name} />
+            <Field label="Téléphone" value={receiptData.renter.phone} />
+          </div>
+
+          <hr style={styles.hrLight} />
+
+          {/* Owner */}
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>🏠 Propriétaire / Gestionnaire</h3>
+            <Field label="Nom" value={receiptData.owner.name} />
+            <Field label="Téléphone" value={receiptData.owner.phone} />
+          </div>
+
+          <hr style={styles.hrLight} />
+
+          {/* Payment Details */}
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>💳 Détails de transaction</h3>
+            <Field label="Méthode de paiement" value={receiptData.payment.method} />
+            <Field label="ID transaction" value={receiptData.payment.transactionId} />
+          </div>
+
+          <hr style={styles.hr} />
+
+          <p style={styles.footerText}>
+            Merci pour votre paiement et votre confiance 💙
+          </p>
+        </div>
 
         {/* Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={handleDownloadPDF}
-            className="w-full bg-card hover:bg-accent border-2 transition-all hover:shadow-md"
-          >
-            <Download className="w-5 h-5 mr-2" />
-            Télécharger le PDF
-          </Button>
-          <Button
-            size="lg"
-            onClick={handleReturnToDashboard}
-            className="w-full bg-orange-500 hover:bg-orange-600 transition-all hover:shadow-lg"
-          >
-            <Home className="w-5 h-5 mr-2" />
-            Retour au tableau de bord
-          </Button>
+        <div style={styles.buttons}>
+          <button style={{ ...styles.button, background: "#fff", color: "#111827", border: "2px solid #111827" }}>
+            <Download size={18} style={{ marginRight: 6 }} /> Télécharger le PDF
+          </button>
+          <button style={{ ...styles.button, background: "#111827", color: "#fff" }}>
+            <Home size={18} style={{ marginRight: 6 }} /> Retour au tableau de bord
+          </button>
         </div>
       </div>
     </main>
   );
 }
+
+// 🔹 Field Component (inline)
+function Field({ label, value }) {
+  if (!value) return null;
+  return (
+    <div style={styles.fieldRow}>
+      <span style={styles.fieldLabel}>{label}</span>
+      <span style={styles.fieldValue}>{value}</span>
+    </div>
+  );
+}
+
+// 🎨 Inline Styles
+const styles = {
+  main: {
+    background: "#f9fafb",
+    minHeight: "100vh",
+    padding: "40px 16px",
+    display: "flex",
+    justifyContent: "center",
+  },
+  container: {
+    width: "100%",
+    maxWidth: 600,
+    display: "flex",
+    flexDirection: "column",
+    gap: "1.5rem",
+  },
+  card: {
+    position: "relative",
+    background: "#fff",
+    borderRadius: 16,
+    padding: "32px 24px",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+    overflow: "hidden",
+  },
+  watermark: {
+    position: "absolute",
+    right: 20,
+    bottom: 20,
+    opacity: 0.05,
+    width: 120,
+  },
+  header: {
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 700,
+    marginBottom: 8,
+  },
+  badge: {
+    display: "inline-flex",
+    alignItems: "center",
+    background: "#dcfce7",
+    color: "#15803d",
+    fontWeight: 600,
+    padding: "6px 12px",
+    borderRadius: 999,
+    fontSize: 14,
+  },
+  hr: {
+    border: "none",
+    borderTop: "1px solid #e5e7eb",
+    margin: "20px 0",
+  },
+  hrLight: {
+    border: "none",
+    borderTop: "1px solid #f3f4f6",
+    margin: "18px 0",
+  },
+  rowBetween: {
+    display: "flex",
+    justifyContent: "space-between",
+  },
+  label: {
+    fontSize: 12,
+    color: "#6b7280",
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+  },
+  value: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: "#111827",
+  },
+  amountSection: {
+    textAlign: "center",
+  },
+  amount: {
+    fontSize: 36,
+    fontWeight: 800,
+    color: "#f97316",
+  },
+  period: {
+    color: "#6b7280",
+    fontSize: 14,
+  },
+  section: {
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    color: "#6b7280",
+    textTransform: "uppercase",
+    marginBottom: 6,
+    fontWeight: 600,
+  },
+  fieldRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    fontSize: 14,
+    margin: "4px 0",
+  },
+  fieldLabel: {
+    color: "#6b7280",
+  },
+  fieldValue: {
+    fontWeight: 600,
+    color: "#111827",
+  },
+  footerText: {
+    textAlign: "center",
+    color: "#6b7280",
+    fontStyle: "italic",
+    fontSize: 14,
+  },
+  buttons: {
+    display: "flex",
+    gap: 12,
+  },
+  button: {
+    flex: 1,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "12px 0",
+    fontWeight: 600,
+    borderRadius: 8,
+    fontSize: 15,
+    cursor: "pointer",
+    transition: "0.3s",
+  },
+};
