@@ -1,7 +1,8 @@
 // client/src/pages/loye/ReceiptPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../utils/axiosInstance";
+
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -20,9 +21,7 @@ export default function ReceiptPage() {
           return;
         }
 
-        const res = await axios.get(`/api/loye/renter/payments/latest`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api.get("/loye/renter/payments/latest");
 
         setPayment(res.data);
       } catch (err) {
