@@ -21,7 +21,9 @@ export default function ReceiptPage() {
           return;
         }
 
-        const res = await api.get("/loye/payments/renter/payments/latest");
+        const res = await api.get("/api/loye/payments/renter/payments/latest");
+
+        
 
 
         setPayment(res.data);
