@@ -72,7 +72,7 @@ function HomePage() {
               Encaissez vos loyers en ligne et gérez vos locataires facilement
             </p>
             <button className="btn outline" onClick={handleLoyerClick}>
-              Découvrir Loye
+              Découvrir Loyer
             </button>
           </div>
 
@@ -125,11 +125,11 @@ function HomePage() {
         <section className="promo">
           <h2>Encaissez vos loyers en ligne – simple & sécurisé</h2>
           <p>
-            Loye simplifie la gestion locative pour propriétaires, gestionnaires
+            Loyer simplifie la gestion locative pour propriétaires, gestionnaires
             et locataires.
           </p>
           <button className="btn light" onClick={handleLoyerClick}>
-            <FaUsers /> Découvrir Loye
+            <FaUsers /> Découvrir Loyer
           </button>
         </section>
 
@@ -142,7 +142,7 @@ function HomePage() {
               <h4>Kouassi Marie</h4>
               <p className="role">Propriétaire</p>
               <p>
-                “Grâce à Loye, je reçois mes loyers à temps chaque mois. Fini
+                “Grâce à Loyer, je reçois mes loyers à temps chaque mois. Fini
                 les retards de paiement !”
               </p>
             </div>
@@ -185,7 +185,7 @@ function HomePage() {
             <h4>Services</h4>
             <ul>
               <li>
-                <a href="/loye">Gérer mes biens (Loye)</a>
+                <a href="/loye">Gérer mes biens (Loyer)</a>
               </li>
               <li>
                 <a href="/land">Acheter un terrain</a>
