@@ -64,7 +64,14 @@ export default function App() {
             </RequireAuth>
           }
         />
-        <Route path="/profile" element={<Profile />} />
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth>
+              <Profile />
+            </RequireAuth>
+          }
+        />
 
 
         {/* 🏠 Owner / Manager Dashboard */}
