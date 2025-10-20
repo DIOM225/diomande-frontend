@@ -21,6 +21,8 @@ import PropertyDetailView from "./pages/loye/PropertyDetailView.jsx";
 import LoyeOnboarding from "./pages/loye/LoyeOnboarding.jsx";
 import ReceiptPage from "./pages/loye/ReceiptPage.jsx"; // ✅ NEW: Receipt Page
 
+import Profile from "./pages/Profile";
+
 // 🧰 Utilities
 import "./App.css";
 import { testApiConnection } from "./utils/testApi.js";
@@ -62,6 +64,8 @@ export default function App() {
             </RequireAuth>
           }
         />
+        <Route path="/profile" element={<Profile />} />
+
 
         {/* 🏠 Owner / Manager Dashboard */}
         <Route
