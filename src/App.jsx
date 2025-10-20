@@ -8,6 +8,9 @@ import RequireAuth from "./components/RequireAuth.jsx";
 import RequireLoyeRole from "./components/RequireLoyeRole.jsx";
 import NotAuthorized from "./pages/NotAuthorized.jsx";
 
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import RequireAdmin from "./components/RequireAdmin";
+
 // 🏠 Core Pages
 import HomePage from "./pages/HomePage.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
@@ -124,6 +127,16 @@ export default function App() {
           element={
             <RequireAuth>
               <ReceiptPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <AdminDashboard />
+              </RequireAdmin>
             </RequireAuth>
           }
         />
