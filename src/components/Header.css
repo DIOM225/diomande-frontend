@@ -56,7 +56,73 @@
 }
 
 /* =========================
-   LOGOUT BUTTON
+   PROFILE DROPDOWN (DESKTOP)
+========================= */
+.profile-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #eee;
+  transition: all 0.2s ease;
+}
+
+.avatar-img:hover {
+  border-color: #ff6a00;
+  transform: scale(1.05);
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.profile-dropdown a,
+.profile-dropdown button {
+  padding: 10px 16px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #111827;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.profile-dropdown a:hover,
+.profile-dropdown button:hover {
+  background: rgba(255, 106, 0, 0.08);
+  color: #ff6a00;
+}
+
+/* =========================
+   LOGOUT BUTTON (MOBILE)
 ========================= */
 .logout-btn {
   background: #dc2626;
@@ -87,7 +153,7 @@
 }
 
 /* =========================
-   MOBILE MENU (FINAL POLISHED)
+   MOBILE MENU
 ========================= */
 .mobile-overlay {
   position: fixed;
@@ -141,6 +207,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
 }
+
 .close-icon:hover {
   background: #f3f4f6;
   transform: rotate(90deg);
@@ -180,12 +247,15 @@
   font-weight: 600;
   transition: background 0.2s ease, transform 0.2s ease;
 }
+
 .mobile-menu .logout-btn:hover {
   background: #b91c1c;
   transform: scale(1.02);
 }
 
-/* Animations */
+/* =========================
+   ANIMATIONS
+========================= */
 @keyframes slideUp {
   from {
     transform: translateY(40px);
@@ -196,6 +266,7 @@
     opacity: 1;
   }
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -204,7 +275,6 @@
     opacity: 1;
   }
 }
-
 
 /* =========================
    RESPONSIVE

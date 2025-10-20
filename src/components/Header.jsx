@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { FaUserCircle } from "react-icons/fa";
 import "./Header.css";
 
 function Header() {
@@ -15,12 +16,13 @@ function Header() {
   });
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.matchMedia("(max-width: 1024px)").matches);
 
   const menuRef = useRef(null);
-  const buttonRef = useRef(null);
+  const profileMenuRef = useRef(null);
 
-  // 🧩 Watch for login/logout changes (localStorage sync)
+  // 🧩 Sync user state on storage or route changes
   useEffect(() => {
     const handleStorageChange = () => {
       try {
@@ -30,27 +32,22 @@ function Header() {
         setUser(null);
       }
     };
-
-    // ✅ Listen for storage or tab changes
     window.addEventListener("storage", handleStorageChange);
-    // ✅ Also re-check when route changes (e.g., after login redirect)
     handleStorageChange();
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [location.pathname]);
 
+  // 🧩 Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("loyeRole");
     setUser(null);
     navigate("/");
-    window.location.reload(); // ✅ ensure full header refresh
+    window.location.reload();
   };
 
-  // 🔹 Responsive behavior
+  // 🧩 Handle screen resize
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 1024px)");
     const handleResize = (e) => setIsMobile(e.matches);
@@ -58,24 +55,24 @@ function Header() {
     return () => mediaQuery.removeEventListener("change", handleResize);
   }, []);
 
-  // 🔹 Click outside to close menu
+  // 🧩 Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(e.target)
+        (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) &&
+        e.target.closest(".profile-btn") == null
       ) {
+        setIsProfileMenuOpen(false);
+      }
+      if (isMobileMenuOpen && !e.target.closest(".mobile-menu") && !e.target.closest(".mobile-menu-icon")) {
         setIsMobileMenuOpen(false);
       }
     };
-    if (isMobileMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMobileMenuOpen]);
 
+  // 🧭 Shared Links
   const renderLinks = () => (
     <>
       <Link to="/loye" onClick={() => setIsMobileMenuOpen(false)}>
@@ -87,18 +84,12 @@ function Header() {
       <Link to="/home" onClick={() => setIsMobileMenuOpen(false)}>
         Maisons
       </Link>
-
-      {user ? (
-        <button
-          onClick={() => {
-            handleLogout();
-            setIsMobileMenuOpen(false);
-          }}
-          className="logout-btn"
-        >
-          Déconnexion
-        </button>
-      ) : (
+      {user && (
+        <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}>
+          Profil
+        </Link>
+      )}
+      {!user && (
         <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
           Connexion / Inscription
         </Link>
@@ -112,26 +103,72 @@ function Header() {
         Diomande<span>.com</span>
       </div>
 
-      {!isMobile && <nav className="nav desktop-links">{renderLinks()}</nav>}
+      {/* Desktop navigation */}
+      {!isMobile && (
+        <nav className="nav desktop-links">
+          <Link to="/loye">Loyer</Link>
+          <Link to="/land">Terrains</Link>
+          <Link to="/home">Maisons</Link>
 
+          {user ? (
+            <div className="profile-container" ref={profileMenuRef}>
+              <button
+                className="profile-btn"
+                onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                aria-label="Profil menu"
+              >
+                {user?.profilePic ? (
+                  <img src={user.profilePic} alt="avatar" className="avatar-img" />
+                ) : (
+                  <FaUserCircle size={28} color="#333" />
+                )}
+              </button>
+
+              {isProfileMenuOpen && (
+                <div className="profile-dropdown">
+                  <Link to="/profile" onClick={() => setIsProfileMenuOpen(false)}>
+                    Mon Profil
+                  </Link>
+                  <button onClick={handleLogout}>Déconnexion</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link to="/auth">Connexion / Inscription</Link>
+          )}
+        </nav>
+      )}
+
+      {/* Mobile hamburger */}
       {isMobile && (
         <button
-          ref={buttonRef}
           className="mobile-menu-icon"
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-          aria-label="Toggle menu"
+          aria-label="Menu"
         >
           ☰
         </button>
       )}
 
+      {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
         <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="mobile-menu" ref={menuRef} onClick={(e) => e.stopPropagation()}>
+          <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
             <span className="close-icon" onClick={() => setIsMobileMenuOpen(false)}>
               ✕
             </span>
             {renderLinks()}
+            {user && (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="logout-btn"
+              >
+                Déconnexion
+              </button>
+            )}
           </div>
         </div>
       )}
