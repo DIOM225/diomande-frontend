@@ -75,19 +75,19 @@ function Header() {
   // 🧭 Shared Links
   const renderLinks = () => (
     <>
-      <Link to="/loye" onClick={() => setIsMobileMenuOpen(false)}>
-        Loyer
-      </Link>
-      <Link to="/land" onClick={() => setIsMobileMenuOpen(false)}>
-        Terrains
-      </Link>
-      <Link to="/home" onClick={() => setIsMobileMenuOpen(false)}>
-        Maisons
-      </Link>
-      {user && (
-        <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}>
-          Profil
+      <Link to="/loye" onClick={() => setIsMobileMenuOpen(false)}>Loyer</Link>
+      <Link to="/land" onClick={() => setIsMobileMenuOpen(false)}>Terrains</Link>
+      <Link to="/home" onClick={() => setIsMobileMenuOpen(false)}>Maisons</Link>
+
+      {/* 👑 Admin option for mobile */}
+      {user?.role === "admin" && (
+        <Link to="/admin/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+          Admin
         </Link>
+      )}
+
+      {user && (
+        <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}>Profil</Link>
       )}
       {!user && (
         <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
@@ -122,6 +122,7 @@ function Header() {
                 ) : (
                   <FaUserCircle size={28} color="#333" />
                 )}
+                {user?.role === "admin" && <span className="admin-badge">Admin</span>}
               </button>
 
               {isProfileMenuOpen && (
@@ -129,6 +130,14 @@ function Header() {
                   <Link to="/profile" onClick={() => setIsProfileMenuOpen(false)}>
                     Mon Profil
                   </Link>
+
+                  {/* 👑 Admin link (desktop dropdown) */}
+                  {user?.role === "admin" && (
+                    <Link to="/admin/dashboard" onClick={() => setIsProfileMenuOpen(false)}>
+                      Espace Admin
+                    </Link>
+                  )}
+
                   <button onClick={handleLogout}>Déconnexion</button>
                 </div>
               )}
@@ -154,9 +163,7 @@ function Header() {
       {isMobileMenuOpen && (
         <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
-            <span className="close-icon" onClick={() => setIsMobileMenuOpen(false)}>
-              ✕
-            </span>
+            <span className="close-icon" onClick={() => setIsMobileMenuOpen(false)}>✕</span>
             {renderLinks()}
             {user && (
               <button
