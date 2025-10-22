@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Support — Diomande.com</title>
+  <meta name="description" content="Besoin d’aide ? Contactez le support Diomande.com par WhatsApp ou via le formulaire." />
+  <link rel="icon" href="/favicon.ico">
+  <style>
+    :root{--brand:#F97316;--bg:#0b0b0c;--card:#141417;--muted:#9aa0a6;--ok:#22c55e;--err:#ef4444}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial;background:linear-gradient(180deg,#0b0b0c, #111113);color:#fff}
+    .wrap{max-width:920px;margin:0 auto;padding:32px}
+    header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+    header img{width:36px;height:36px}
+    h1{font-size:32px;margin:0 0 8px}
+    .sub{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}
+    @media (max-width:860px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid #1d1d22;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .card.pad{padding:22px}
+    .cta{display:flex;gap:12px;margin:8px 0 18px}
+    .btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight:600;cursor:pointer;transition:.15s transform ease, .15s opacity}
+    .btn:active{transform:translateY(1px)}
+    .btn.whatsapp{background:#25D366;color:#0c1612}
+    .btn.email{background:var(--brand);color:#111}
+    .field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+    .field label{font-size:14px;color:#c9cdd4}
+    .field input,.field textarea{background:#0f0f12;border:1px solid #23232a;color:#fff;border-radius:10px;padding:12px 14px;font-size:15px}
+    .hint{font-size:12px;color:var(--muted)}
+    .err{color:var(--err);font-size:13px;margin-top:4px}
+    .success{display:none;margin-top:12px;color:var(--ok);font-weight:600}
+    .faq h3{font-size:16px;margin:0}
+    details{background:#101015;border:1px solid #1f1f25;padding:14px;border-radius:12px}
+    details+details{margin-top:10px}
+    footer{margin:24px 0 10px;color:var(--muted);font-size:13px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="/icons/app-icon.png" alt="Diomande.com" />
+      <div>
+        <h1>Support Diomande.com</h1>
+        <p class="sub">Besoin d’aide ? Nous répondons vite par WhatsApp ou e-mail.</p>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Left: Contact -->
+      <section class="card pad">
+        <h2 style="margin-top:0">Contactez-nous</h2>
+        <div class="cta">
+          <!-- TODO: replace NUMBER with your WhatsApp in international format -->
+          <a class="btn whatsapp" href="https://wa.me/2250700000000?text=Bonjour%20Diomande%2C%20j%E2%80%99ai%20besoin%20d%E2%80%99aide%20%C3%A0%20propos%20de..." target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn email" href="mailto:support@diomande.com">support@diomande.com</a>
+        </div>
+
+        <form id="support-form" class="form" novalidate>
+          <div class="field">
+            <label for="name">Nom complet</label>
+            <input id="name" name="name" autocomplete="name" required />
+            <div class="err" data-err="name"></div>
+          </div>
+          <div class="field">
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+            <div class="err" data-err="email"></div>
+          </div>
+          <div class="field">
+            <label for="topic">Sujet</label>
+            <input id="topic" name="topic" placeholder="Paiement, maintenance, compte…" required />
+            <div class="err" data-err="topic"></div>
+          </div>
+          <div class="field">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="5" required></textarea>
+            <div class="err" data-err="message"></div>
+            <p class="hint">Temps de réponse moyen : &lt; 24h (lun–sam)</p>
+          </div>
+
+          <!-- honeypot -->
+          <input type="text" name="company" id="company" style="display:none" tabindex="-1" autocomplete="off"/>
+
+          <button class="btn email" type="submit">Envoyer la demande</button>
+          <p id="success" class="success">✅ Merci ! Votre demande a été envoyée.</p>
+          <p id="fail" class="err" style="display:none">Une erreur est survenue. Réessayez.</p>
+        </form>
+      </section>
+
+      <!-- Right: FAQ / Hours -->
+      <aside class="card pad">
+        <h2 style="margin-top:0">FAQ rapide</h2>
+        <div class="faq">
+          <details>
+            <summary><h3>Puis-je payer via Wave Mobile Money ?</h3></summary>
+            <p>Oui. Depuis l’app Diom225, cliquez sur <em>Payer le loyer</em>. Le paiement s’ouvre dans Wave et le reçu est généré automatiquement.</p>
+          </details>
+          <details>
+            <summary><h3>Où trouver mon reçu ?</h3></summary>
+            <p>Dans votre historique des paiements → touchez une ligne pour ouvrir le reçu. Vous pouvez aussi recevoir le lien par e-mail.</p>
+          </details>
+          <details>
+            <summary><h3>Je dois changer mon numéro de téléphone</h3></summary>
+            <p>Envoyez-nous le nouveau numéro et votre code logement. Nous mettrons à jour votre compte.</p>
+          </details>
+        </div>
+        <hr style="border-color:#1f1f25;margin:18px 0">
+        <p class="sub"><strong>Horaires</strong><br> Lun–Sam : 9h–18h GMT</p>
+        <p class="sub"><strong>Téléphone</strong><br> +225 07 00 00 00 00</p>
+      </aside>
+    </div>
+
+    <footer>© 2025 DIOM TECH LLC — Tous droits réservés.</footer>
+  </div>
+
+  <script>
+    const f = document.getElementById('support-form');
+    const ok = document.getElementById('success');
+    const fail = document.getElementById('fail');
+
+    function setErr(id, msg){ document.querySelector(`[data-err="${id}"]`).textContent = msg || '' }
+
+    f.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      // simple validation
+      let valid = true;
+      const data = Object.fromEntries(new FormData(f).entries());
+      ['name','email','topic','message'].forEach(k => setErr(k,''));
+      if(!data.name){ setErr('name','Nom requis'); valid=false }
+      if(!data.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)){ setErr('email','E-mail valide requis'); valid=false }
+      if(!data.topic){ setErr('topic','Sujet requis'); valid=false }
+      if(!data.message){ setErr('message','Message requis'); valid=false }
+      if(!valid) return;
+      if(data.company){ return } // honeypot
+
+      try{
+        // POST to your backend (see Option C)
+        const res = await fetch('/api/support', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(data)
+        });
+        if(res.ok){ ok.style.display='block'; fail.style.display='none'; f.reset(); }
+        else { throw new Error(await res.text()) }
+      }catch(err){
+        fail.style.display='block';
+        console.error('Support form error', err);
+      }
+    });
+  </script>
+</body>
+</html>
