@@ -2,13 +2,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "../utils/axiosInstance";
 
-/**
- * Diomande.com Profile page
- * - Shows & edits user profile (name, phone, bio, avatar, ID)
- * - Includes Owner/Manager payout verification section (Wave / Bank + docs)
- * - Uses Cloudinary unsigned upload (change preset/cloud if needed)
- */
-
 const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dgpzat6o4/image/upload";
 const CLOUDINARY_PRESET = "diom_unsigned";
 
@@ -18,7 +11,6 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  // Profile form
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -28,7 +20,6 @@ export default function Profile() {
     idImage: "",
   });
 
-  // Verification form (Owner / Manager)
   const [verif, setVerif] = useState({
     fullName: "",
     phone: "",
@@ -38,13 +29,10 @@ export default function Profile() {
     idCardImage: "",
     proofOfOwnership: "",
   });
-  const [verifStatus, setVerifStatus] = useState(null); // PENDING | APPROVED | REJECTED | null
+  const [verifStatus, setVerifStatus] = useState(null);
   const [verifLoading, setVerifLoading] = useState(false);
   const [verifMessage, setVerifMessage] = useState("");
 
-  // ─────────────────────────────────────────────
-  // Load profile + verification
-  // ─────────────────────────────────────────────
   useEffect(() => {
     (async () => {
       try {
@@ -52,7 +40,6 @@ export default function Profile() {
         const { data } = await axios.get("/api/profile/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         setProfile(data);
         setForm({
           name: data.name || "",
@@ -63,7 +50,6 @@ export default function Profile() {
           idImage: data.idImage || "",
         });
 
-        // Load existing verification (if any)
         try {
           const { data: ver } = await axios.get(`/api/loye/verification/${data._id}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -80,16 +66,13 @@ export default function Profile() {
               proofOfOwnership: ver.proofOfOwnership || "",
             });
           } else {
-            // pre-fill from profile
             setVerif((prev) => ({
               ...prev,
               fullName: data.name || "",
               phone: data.phone || "",
             }));
           }
-        } catch {
-          // no existing record — ignore
-        }
+        } catch {}
       } catch (err) {
         console.error("❌ Failed to load profile", err);
       } finally {
@@ -103,9 +86,6 @@ export default function Profile() {
     [profile]
   );
 
-  // ─────────────────────────────────────────────
-  // Helpers
-  // ─────────────────────────────────────────────
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -126,11 +106,10 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
+      const url = await uploadImage(file);
       if (target === "profilePic" || target === "idImage") {
-        const url = await uploadImage(file);
         setForm((f) => ({ ...f, [target]: url }));
       } else {
-        const url = await uploadImage(file);
         setVerif((v) => ({ ...v, [target]: url }));
       }
     } catch (err) {
@@ -139,9 +118,6 @@ export default function Profile() {
     }
   };
 
-  // ─────────────────────────────────────────────
-  // Save Profile
-  // ─────────────────────────────────────────────
   const saveProfile = async () => {
     try {
       setSaving(true);
@@ -160,9 +136,6 @@ export default function Profile() {
     }
   };
 
-  // ─────────────────────────────────────────────
-  // Submit Verification
-  // ─────────────────────────────────────────────
   const submitVerification = async () => {
     if (!profile?._id) return;
     if (!verif.idCardImage) {
@@ -172,17 +145,12 @@ export default function Profile() {
     try {
       setVerifLoading(true);
       setVerifMessage("");
-
       const token = localStorage.getItem("token");
       await axios.post(
         "/api/loye/verification",
-        {
-          ...verif,
-          userId: profile._id,
-        },
+        { ...verif, userId: profile._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setVerifStatus("PENDING");
       setVerifMessage("✅ Documents soumis. En attente d'approbation.");
     } catch (err) {
@@ -193,12 +161,15 @@ export default function Profile() {
     }
   };
 
+  const handleModify = (field) => {
+    setVerif((v) => ({ ...v, [field]: "" }));
+    setVerifStatus(null);
+    setVerifMessage("✏️ Vous pouvez maintenant mettre à jour vos informations.");
+  };
+
   if (loading) return <p style={sx.center}>Chargement…</p>;
   if (!profile) return <p style={sx.center}>Impossible de charger le profil.</p>;
 
-  // ─────────────────────────────────────────────
-  // UI
-  // ─────────────────────────────────────────────
   return (
     <div style={sx.page}>
       {/* Header */}
@@ -265,7 +236,6 @@ export default function Profile() {
           />
         </Field>
 
-        {/* Optional ID image (user profile) */}
         {editing && (
           <Field label="📄 Carte d'identité (facultatif)">
             <input type="file" accept="image/*" onChange={(e) => handleUpload(e, "idImage")} />
@@ -310,35 +280,24 @@ export default function Profile() {
           </div>
         )}
 
-        {/* Form is editable unless already approved */}
-        <Field label="Nom complet">
-          <input
-            name="fullName"
-            value={verif.fullName}
-            onChange={onChangeVerif}
-            disabled={verifStatus === "APPROVED"}
-            style={inputStyle(verifStatus === "APPROVED")}
-          />
-        </Field>
-
-        <Field label="Téléphone">
-          <input
-            name="phone"
-            value={verif.phone}
-            onChange={onChangeVerif}
-            disabled={verifStatus === "APPROVED"}
-            style={inputStyle(verifStatus === "APPROVED")}
-          />
-        </Field>
-
-        <Field label="Numéro Wave (ex: +2250700000000)">
-          <input
-            name="waveNumber"
-            value={verif.waveNumber}
-            onChange={onChangeVerif}
-            disabled={verifStatus === "APPROVED"}
-            style={inputStyle(verifStatus === "APPROVED")}
-          />
+        {/* ——— Mask-aware Wave + Bank fields ——— */}
+        <Field label="Numéro Wave">
+          {verif.waveNumber.includes("*") ? (
+            <div style={sx.maskBox}>
+              <span>{verif.waveNumber} (masqué pour votre sécurité)</span>
+              <button style={sx.btnGhostSmall} onClick={() => handleModify("waveNumber")}>
+                Modifier
+              </button>
+            </div>
+          ) : (
+            <input
+              name="waveNumber"
+              value={verif.waveNumber}
+              onChange={onChangeVerif}
+              disabled={verifStatus === "APPROVED"}
+              style={inputStyle(verifStatus === "APPROVED")}
+            />
+          )}
         </Field>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -353,16 +312,26 @@ export default function Profile() {
           </Field>
 
           <Field label="N° de compte (optionnel)">
-            <input
-              name="accountNumber"
-              value={verif.accountNumber}
-              onChange={onChangeVerif}
-              disabled={verifStatus === "APPROVED"}
-              style={inputStyle(verifStatus === "APPROVED")}
-            />
+            {verif.accountNumber.includes("*") ? (
+              <div style={sx.maskBox}>
+                <span>{verif.accountNumber} (masqué)</span>
+                <button style={sx.btnGhostSmall} onClick={() => handleModify("accountNumber")}>
+                  Modifier
+                </button>
+              </div>
+            ) : (
+              <input
+                name="accountNumber"
+                value={verif.accountNumber}
+                onChange={onChangeVerif}
+                disabled={verifStatus === "APPROVED"}
+                style={inputStyle(verifStatus === "APPROVED")}
+              />
+            )}
           </Field>
         </div>
 
+        {/* ID & Proof uploads unchanged */}
         <Field label="📄 Carte d'identité (obligatoire)">
           {verif.idCardImage && <img src={verif.idCardImage} alt="id" style={sx.preview} />}
           <input
@@ -404,9 +373,9 @@ export default function Profile() {
   );
 }
 
-/* ─────────────────────────────────────────────
- * Small UI helpers / components
- * ────────────────────────────────────────────*/
+/* ────────────────────────────────
+   UI helpers / components
+────────────────────────────────── */
 function Field({ label, children }) {
   return (
     <div style={{ marginBottom: 16 }}>
@@ -460,7 +429,6 @@ const sx = {
   header: { textAlign: "center", marginBottom: 24 },
   headerTitle: { margin: 0, fontSize: 28, fontWeight: 800, color: "#111827" },
   headerSubtitle: { margin: "6px 0 0", color: "#6b7280" },
-
   card: {
     maxWidth: 760,
     margin: "0 auto 20px",
@@ -469,10 +437,8 @@ const sx = {
     padding: 24,
     boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
   },
-
   avatarBox: { width: 120, height: 120, borderRadius: "50%", overflow: "hidden", border: "3px solid #F3F4F6" },
   avatar: { width: "100%", height: "100%", objectFit: "cover" },
-
   btn: {
     padding: "12px 16px",
     borderRadius: 10,
@@ -480,6 +446,17 @@ const sx = {
     background: "#FF6A00",
     color: "#fff",
     fontWeight: 700,
+    cursor: "pointer",
+  },
+  btnGhostSmall: {
+    marginLeft: 8,
+    padding: "6px 10px",
+    borderRadius: 8,
+    border: "1px solid #E5E7EB",
+    background: "#fff",
+    color: "#111827",
+    fontWeight: 600,
+    fontSize: 13,
     cursor: "pointer",
   },
   btnOutline: {
@@ -499,6 +476,15 @@ const sx = {
     color: "#111827",
     fontWeight: 600,
     cursor: "pointer",
+  },
+  maskBox: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    background: "#F9FAFB",
+    border: "1px solid #E5E7EB",
+    borderRadius: 10,
+    padding: "12px 14px",
   },
   preview: {
     marginTop: 10,
