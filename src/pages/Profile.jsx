@@ -1,19 +1,16 @@
+// diomande-frontend/src/pages/Profile.jsx
 import { useEffect, useMemo, useState } from "react";
 import axios from "../utils/axiosInstance";
 
 const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dgpzat6o4/image/upload";
 const CLOUDINARY_PRESET = "diom_unsigned";
 
-/* ────────────────────────────────
-   ✅ Helper to normalize phone/Wave number
-   Always adds +225 if 10 digits are detected
-──────────────────────────────── */
-function normalizeCIPhone(raw) {
+// ✅ Helper to enforce Wave number format (+225 + 10 digits)
+function normalizeWaveNumber(raw) {
   if (!raw) return "";
   const digits = raw.replace(/\D/g, ""); // keep digits only
-  if (digits.length === 10) return `+225${digits}`; // always add +225
-  if (digits.startsWith("225") && digits.length === 12) return `+${digits}`; // already has +225
-  return null; // invalid
+  if (digits.length !== 10) return null; // must be exactly 10 digits
+  return `+225${digits}`;
 }
 
 export default function Profile() {
@@ -40,6 +37,7 @@ export default function Profile() {
     idCardImage: "",
     proofOfOwnership: "",
   });
+
   const [verifStatus, setVerifStatus] = useState(null);
   const [verifLoading, setVerifLoading] = useState(false);
   const [verifMessage, setVerifMessage] = useState("");
@@ -129,25 +127,22 @@ export default function Profile() {
     }
   };
 
-  /* ────────────────────────────────
-     ✅ Save profile (auto +225 normalization)
-  ──────────────────────────────── */
   const saveProfile = async () => {
     try {
       setSaving(true);
-      const normalizedPhone = normalizeCIPhone(form.phone);
-      if (!normalizedPhone) {
-        alert("Le numéro de téléphone doit contenir exactement 10 chiffres (ex: 0707402609).");
-        setSaving(false);
-        return;
-      }
-
       const token = localStorage.getItem("token");
+
+      // ✅ normalize phone before sending
+      const cleanPhone = form.phone?.replace(/\D/g, "");
+      const normalizedPhone =
+        cleanPhone?.length === 10 ? `+225${cleanPhone}` : form.phone;
+
       const { data } = await axios.put(
         "/api/profile/me",
         { ...form, phone: normalizedPhone },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       setProfile(data);
       setEditing(false);
       alert("✅ Profil mis à jour");
@@ -159,9 +154,6 @@ export default function Profile() {
     }
   };
 
-  /* ────────────────────────────────
-     ✅ Submit verification (auto +225)
-  ──────────────────────────────── */
   const submitVerification = async () => {
     if (!profile?._id) return;
     if (!verif.idCardImage) {
@@ -169,7 +161,8 @@ export default function Profile() {
       return;
     }
 
-    const cleanWave = normalizeCIPhone(verif.waveNumber);
+    // ✅ Enforce +225 Wave number format
+    const cleanWave = normalizeWaveNumber(verif.waveNumber);
     if (!cleanWave) {
       alert("Le numéro Wave doit contenir exactement 10 chiffres (ex: 0759917862).");
       return;
@@ -213,21 +206,52 @@ export default function Profile() {
         </p>
       </div>
 
-      {/* Verification section */}
+      {/* 🔸 Basic Profile Section */}
+      <div style={sx.card}>
+        <Field label="Nom complet">
+          <input
+            name="name"
+            value={form.name}
+            onChange={onChange}
+            style={inputStyle(false)}
+          />
+        </Field>
+        <Field label="Téléphone">
+          <input
+            name="phone"
+            value={form.phone}
+            onChange={onChange}
+            style={inputStyle(false)}
+            placeholder="07XXXXXXXX"
+          />
+        </Field>
+        <button onClick={saveProfile} style={sx.btn}>
+          {saving ? "Enregistrement..." : "💾 Enregistrer"}
+        </button>
+      </div>
+
+      {/* 🔸 Verification section */}
       <div style={sx.card}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Vérification du compte (payout)</h2>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
+            Vérification du compte (payout)
+          </h2>
           <StatusBadge status={verifStatus} />
         </div>
+
         <p style={sx.muted}>
-          Entrez votre numéro Wave (10 chiffres). Le système ajoutera automatiquement +225 avant l’envoi.
+          Entrez votre numéro Wave (10 chiffres, sans indicatif). Le système ajoutera
+          automatiquement +225.
         </p>
 
         <Field label="Numéro Wave (10 chiffres)">
           {verif.waveNumber.includes("*") ? (
             <div style={sx.maskBox}>
               <span>{verif.waveNumber} (masqué)</span>
-              <button style={sx.btnGhostSmall} onClick={() => handleModify("waveNumber")}>
+              <button
+                style={sx.btnGhostSmall}
+                onClick={() => handleModify("waveNumber")}
+              >
                 Modifier
               </button>
             </div>
@@ -244,17 +268,58 @@ export default function Profile() {
           )}
         </Field>
 
-        {/* Rest of your file unchanged */}
+        <Field label="Carte d'identité (image)">
+          {verif.idCardImage ? (
+            <img
+              src={verif.idCardImage}
+              alt="ID"
+              style={{ width: 120, borderRadius: 8, display: "block", marginBottom: 8 }}
+            />
+          ) : null}
+          <input type="file" accept="image/*" onChange={(e) => handleUpload(e, "idCardImage")} />
+        </Field>
+
+        <Field label="Preuve de propriété (optionnel)">
+          {verif.proofOfOwnership ? (
+            <img
+              src={verif.proofOfOwnership}
+              alt="Proof"
+              style={{ width: 120, borderRadius: 8, display: "block", marginBottom: 8 }}
+            />
+          ) : null}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleUpload(e, "proofOfOwnership")}
+          />
+        </Field>
+
+        <button
+          onClick={submitVerification}
+          style={{ ...sx.btn, opacity: verifLoading ? 0.7 : 1 }}
+          disabled={verifLoading}
+        >
+          {verifLoading ? "Envoi..." : "Soumettre la vérification"}
+        </button>
+
+        {verifMessage && <p style={{ marginTop: 12 }}>{verifMessage}</p>}
       </div>
     </div>
   );
 }
 
-/* Helper components and styles unchanged */
+/* Helper components */
 function Field({ label, children }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <label style={{ display: "block", fontWeight: 600, marginBottom: 6, color: "#111827" }}>
+      <label
+        style={{
+          display: "block",
+          fontWeight: 600,
+          marginBottom: 6,
+          color: "#111827",
+        }}
+      >
         {label}
       </label>
       {children}
@@ -273,16 +338,12 @@ function chipColor(kind) {
     borderRadius: 999,
     fontWeight: 700,
     fontSize: 12,
-    letterSpacing: 0.3,
   };
   const map = {
-    owner: { background: "#ECFDF5", color: "#065F46" },
-    manager: { background: "#EFF6FF", color: "#1E40AF" },
     APPROVED: { background: "#ECFDF5", color: "#065F46" },
     PENDING: { background: "#FEF3C7", color: "#92400E" },
     REJECTED: { background: "#FEE2E2", color: "#991B1B" },
     UNKNOWN: { background: "#F3F4F6", color: "#374151" },
-    user: { background: "#F3F4F6", color: "#374151" },
   };
   return { ...base, ...(map[kind] || map.UNKNOWN) };
 }
