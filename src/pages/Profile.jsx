@@ -5,11 +5,20 @@ import axios from "../utils/axiosInstance";
 const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dgpzat6o4/image/upload";
 const CLOUDINARY_PRESET = "diom_unsigned";
 
+// ✅ Helper: normalize Côte d’Ivoire numbers (+225)
+function normalizeCIPhone(raw) {
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 10) return `+225${digits}`;
+  if (digits.startsWith("225") && digits.length === 12) return `+${digits}`;
+  return raw;
+}
+
 // ✅ Helper to enforce Wave number format (+225 + 10 digits)
 function normalizeWaveNumber(raw) {
   if (!raw) return "";
-  const digits = raw.replace(/\D/g, ""); // keep digits only
-  if (digits.length !== 10) return null; // must be exactly 10 digits
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length !== 10) return null;
   return `+225${digits}`;
 }
 
@@ -21,7 +30,6 @@ export default function Profile() {
 
   const [form, setForm] = useState({
     name: "",
-    email: "",
     phone: "",
     bio: "",
     profilePic: "",
@@ -37,11 +45,13 @@ export default function Profile() {
     idCardImage: "",
     proofOfOwnership: "",
   });
-
   const [verifStatus, setVerifStatus] = useState(null);
   const [verifLoading, setVerifLoading] = useState(false);
   const [verifMessage, setVerifMessage] = useState("");
 
+  /* ────────────────────────────────
+     🔹 Load profile + verification
+  ──────────────────────────────── */
   useEffect(() => {
     (async () => {
       try {
@@ -52,13 +62,13 @@ export default function Profile() {
         setProfile(data);
         setForm({
           name: data.name || "",
-          email: data.email || "",
           phone: data.phone || "",
           bio: data.bio || "",
-          profilePic: data.profilePic || "https://i.pravatar.cc/150?img=12",
+          profilePic: data.profilePic || "",
           idImage: data.idImage || "",
         });
 
+        // Fetch payout verification if exists
         try {
           const { data: ver } = await axios.get(`/api/loye/verification/${data._id}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -74,12 +84,6 @@ export default function Profile() {
               idCardImage: ver.idCardImage || "",
               proofOfOwnership: ver.proofOfOwnership || "",
             });
-          } else {
-            setVerif((prev) => ({
-              ...prev,
-              fullName: data.name || "",
-              phone: data.phone || "",
-            }));
           }
         } catch {}
       } catch (err) {
@@ -101,6 +105,9 @@ export default function Profile() {
   const onChangeVerif = (e) =>
     setVerif((v) => ({ ...v, [e.target.name]: e.target.value }));
 
+  /* ────────────────────────────────
+     🔹 Cloudinary image upload
+  ──────────────────────────────── */
   const uploadImage = async (file) => {
     const fd = new FormData();
     fd.append("file", file);
@@ -116,35 +123,29 @@ export default function Profile() {
     if (!file) return;
     try {
       const url = await uploadImage(file);
-      if (target === "profilePic" || target === "idImage") {
-        setForm((f) => ({ ...f, [target]: url }));
-      } else {
-        setVerif((v) => ({ ...v, [target]: url }));
-      }
+      setForm((f) => ({ ...f, [target]: url }));
     } catch (err) {
       console.error("Upload error:", err);
       alert("Échec du téléversement. Réessayez.");
     }
   };
 
+  /* ────────────────────────────────
+     🔹 Save profile
+  ──────────────────────────────── */
   const saveProfile = async () => {
     try {
       setSaving(true);
       const token = localStorage.getItem("token");
-
-      // ✅ normalize phone before sending
-      const cleanPhone = form.phone?.replace(/\D/g, "");
-      const normalizedPhone =
-        cleanPhone?.length === 10 ? `+225${cleanPhone}` : form.phone;
+      const cleanPhone = normalizeCIPhone(form.phone);
 
       const { data } = await axios.put(
         "/api/profile/me",
-        { ...form, phone: normalizedPhone },
+        { ...form, phone: cleanPhone },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setProfile(data);
-      setEditing(false);
       alert("✅ Profil mis à jour");
     } catch (err) {
       console.error("❌ MAJ profil:", err);
@@ -154,6 +155,9 @@ export default function Profile() {
     }
   };
 
+  /* ────────────────────────────────
+     🔹 Submit payout verification
+  ──────────────────────────────── */
   const submitVerification = async () => {
     if (!profile?._id) return;
     if (!verif.idCardImage) {
@@ -161,7 +165,6 @@ export default function Profile() {
       return;
     }
 
-    // ✅ Enforce +225 Wave number format
     const cleanWave = normalizeWaveNumber(verif.waveNumber);
     if (!cleanWave) {
       alert("Le numéro Wave doit contenir exactement 10 chiffres (ex: 0759917862).");
@@ -170,7 +173,6 @@ export default function Profile() {
 
     try {
       setVerifLoading(true);
-      setVerifMessage("");
       const token = localStorage.getItem("token");
       await axios.post(
         "/api/loye/verification",
@@ -187,50 +189,103 @@ export default function Profile() {
     }
   };
 
-  const handleModify = (field) => {
-    setVerif((v) => ({ ...v, [field]: "" }));
-    setVerifStatus(null);
-    setVerifMessage("✏️ Vous pouvez maintenant mettre à jour vos informations.");
-  };
-
   if (loading) return <p style={sx.center}>Chargement…</p>;
-  if (!profile) return <p style={sx.center}>Impossible de charger le profil.</p>;
 
+  /* ────────────────────────────────
+     🔸 RENDER
+  ──────────────────────────────── */
   return (
     <div style={sx.page}>
       <div style={sx.header}>
         <h1 style={sx.headerTitle}>Mon Profil</h1>
         <p style={sx.headerSubtitle}>
-          Gérez vos informations et, si vous êtes propriétaire / gestionnaire,
-          soumettez vos documents pour recevoir vos paiements automatiquement.
+          Gérez vos informations et vos documents afin de recevoir vos paiements
+          en toute sécurité sur Diomande.com.
         </p>
       </div>
 
-      {/* 🔸 Basic Profile Section */}
+      {/* ─────── Full Profile Section ─────── */}
       <div style={sx.card}>
-        <Field label="Nom complet">
-          <input
-            name="name"
-            value={form.name}
+        <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 24 }}>
+          <div style={{ position: "relative" }}>
+            <img
+              src={
+                form.profilePic ||
+                "https://res.cloudinary.com/dgpzat6o4/image/upload/v1691688941/default_user.jpg"
+              }
+              alt="Profil"
+              style={{
+                width: 100,
+                height: 100,
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "2px solid #ddd",
+              }}
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleUpload(e, "profilePic")}
+              style={{
+                position: "absolute",
+                bottom: 0,
+                right: 0,
+                opacity: 0,
+                width: "100%",
+                height: "100%",
+                cursor: "pointer",
+              }}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <Field label="Nom complet">
+              <input
+                name="name"
+                value={form.name}
+                onChange={onChange}
+                style={inputStyle(false)}
+              />
+            </Field>
+            <Field label="Téléphone">
+              <input
+                name="phone"
+                value={form.phone}
+                onChange={onChange}
+                style={inputStyle(false)}
+                placeholder="07XXXXXXXX"
+              />
+            </Field>
+          </div>
+        </div>
+
+        <Field label="Biographie (optionnelle)">
+          <textarea
+            name="bio"
+            value={form.bio}
             onChange={onChange}
-            style={inputStyle(false)}
+            rows={3}
+            style={{ ...inputStyle(false), resize: "none" }}
+            placeholder="Décrivez brièvement votre rôle ou expérience..."
           />
         </Field>
-        <Field label="Téléphone">
-          <input
-            name="phone"
-            value={form.phone}
-            onChange={onChange}
-            style={inputStyle(false)}
-            placeholder="07XXXXXXXX"
-          />
+
+        <Field label="Carte d'identité (image)">
+          {form.idImage ? (
+            <img
+              src={form.idImage}
+              alt="Carte d'identité"
+              style={{ width: 160, borderRadius: 8, marginBottom: 8 }}
+            />
+          ) : null}
+          <input type="file" accept="image/*" onChange={(e) => handleUpload(e, "idImage")} />
         </Field>
-        <button onClick={saveProfile} style={sx.btn}>
-          {saving ? "Enregistrement..." : "💾 Enregistrer"}
+
+        <button onClick={saveProfile} style={sx.btn} disabled={saving}>
+          {saving ? "Enregistrement..." : "💾 Enregistrer les informations"}
         </button>
       </div>
 
-      {/* 🔸 Verification section */}
+      {/* ─────── Verification Section (unchanged) ─────── */}
       <div style={sx.card}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
@@ -240,58 +295,41 @@ export default function Profile() {
         </div>
 
         <p style={sx.muted}>
-          Entrez votre numéro Wave (10 chiffres, sans indicatif). Le système ajoutera
-          automatiquement +225.
+          Entrez votre numéro Wave (10 chiffres, sans indicatif). Le système ajoutera automatiquement +225.
         </p>
 
         <Field label="Numéro Wave (10 chiffres)">
-          {verif.waveNumber.includes("*") ? (
-            <div style={sx.maskBox}>
-              <span>{verif.waveNumber} (masqué)</span>
-              <button
-                style={sx.btnGhostSmall}
-                onClick={() => handleModify("waveNumber")}
-              >
-                Modifier
-              </button>
-            </div>
-          ) : (
-            <input
-              name="waveNumber"
-              value={verif.waveNumber}
-              onChange={onChangeVerif}
-              disabled={verifStatus === "APPROVED"}
-              maxLength={10}
-              style={inputStyle(verifStatus === "APPROVED")}
-              placeholder="0759917862"
-            />
-          )}
+          <input
+            name="waveNumber"
+            value={verif.waveNumber}
+            onChange={onChangeVerif}
+            disabled={verifStatus === "APPROVED"}
+            maxLength={10}
+            style={inputStyle(verifStatus === "APPROVED")}
+            placeholder="0759917862"
+          />
         </Field>
 
-        <Field label="Carte d'identité (image)">
-          {verif.idCardImage ? (
+        <Field label="Carte d'identité (obligatoire)">
+          {verif.idCardImage && (
             <img
               src={verif.idCardImage}
               alt="ID"
               style={{ width: 120, borderRadius: 8, display: "block", marginBottom: 8 }}
             />
-          ) : null}
+          )}
           <input type="file" accept="image/*" onChange={(e) => handleUpload(e, "idCardImage")} />
         </Field>
 
-        <Field label="Preuve de propriété (optionnel)">
-          {verif.proofOfOwnership ? (
+        <Field label="Preuve de propriété (optionnelle)">
+          {verif.proofOfOwnership && (
             <img
               src={verif.proofOfOwnership}
               alt="Proof"
               style={{ width: 120, borderRadius: 8, display: "block", marginBottom: 8 }}
             />
-          ) : null}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleUpload(e, "proofOfOwnership")}
-          />
+          )}
+          <input type="file" accept="image/*" onChange={(e) => handleUpload(e, "proofOfOwnership")} />
         </Field>
 
         <button
@@ -301,25 +339,19 @@ export default function Profile() {
         >
           {verifLoading ? "Envoi..." : "Soumettre la vérification"}
         </button>
-
         {verifMessage && <p style={{ marginTop: 12 }}>{verifMessage}</p>}
       </div>
     </div>
   );
 }
 
-/* Helper components */
+/* ────────────────────────────────
+   🔸 UI Helpers
+──────────────────────────────── */
 function Field({ label, children }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <label
-        style={{
-          display: "block",
-          fontWeight: 600,
-          marginBottom: 6,
-          color: "#111827",
-        }}
-      >
+      <label style={{ display: "block", fontWeight: 600, marginBottom: 6, color: "#111827" }}>
         {label}
       </label>
       {children}
@@ -381,26 +413,6 @@ const sx = {
     color: "#fff",
     fontWeight: 700,
     cursor: "pointer",
-  },
-  btnGhostSmall: {
-    marginLeft: 8,
-    padding: "6px 10px",
-    borderRadius: 8,
-    border: "1px solid #E5E7EB",
-    background: "#fff",
-    color: "#111827",
-    fontWeight: 600,
-    fontSize: 13,
-    cursor: "pointer",
-  },
-  maskBox: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    background: "#F9FAFB",
-    border: "1px solid #E5E7EB",
-    borderRadius: 10,
-    padding: "12px 14px",
   },
   muted: { color: "#6b7280", marginTop: 6 },
   center: { textAlign: "center", padding: 40 },
