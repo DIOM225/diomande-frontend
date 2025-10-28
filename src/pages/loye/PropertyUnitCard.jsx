@@ -207,7 +207,20 @@ export default function PropertyUnitCard({
               type="tel"
               placeholder="Téléphone"
               value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, ""); // remove all non-digits
+                if (value.length <= 10) {
+                  setForm({ ...form, phone: value });
+                }
+              }}
+              onBlur={() => {
+                if (form.phone.length !== 10) {
+                  alert("Le numéro doit contenir exactement 10 chiffres.");
+                }
+              }}
+              pattern="\d{10}"
+              maxLength={10}
+              inputMode="numeric"
               style={modal.input}
             />
 
