@@ -142,8 +142,7 @@ function HomePage() {
               <h4>Kouassi Marie</h4>
               <p className="role">Propriétaire</p>
               <p>
-                “Grâce à Loyer, je reçois mes loyers à temps chaque mois. Fini
-                les retards de paiement !”
+                “Grâce à L'application Diom225, je reçois mes loyers à temps chaque fin du mois.!”
               </p>
             </div>
             <div className="testimonial">
