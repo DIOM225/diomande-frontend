@@ -73,6 +73,22 @@ export default function OwnerProperties() {
     { totalConfirmed: 0, totalExpected: 0 }
   );
 
+  // ✅ Helper: Calculate total occupancy rate across all properties
+  const calculateGlobalOccupancy = (propertiesList) => {
+    if (!Array.isArray(propertiesList) || propertiesList.length === 0) return 0;
+
+    let totalUnits = 0;
+    let occupiedUnits = 0;
+
+    propertiesList.forEach((property) => {
+      const units = property.units || [];
+      totalUnits += units.length;
+      occupiedUnits += units.filter((u) => u.renterId || u.renter).length;
+    });
+
+    return totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
+  };
+
   return (
     <div style={styles.page}>
       {/* Header */}
@@ -152,7 +168,7 @@ export default function OwnerProperties() {
         />
         <MetricCard
           label="Taux d’occupation"
-          value="0%"
+          value={`${calculateGlobalOccupancy(properties)}%`}
           icon={<FaChartLine size={30} color="#fb923c" />}
         />
       </div>
@@ -184,10 +200,11 @@ export default function OwnerProperties() {
 
                 <div style={styles.infoRow}>
                   <span>
-                    Unités :{" "}
-                    <strong>{property.units?.length || 0}</strong>
+                    Unités : <strong>{property.units?.length || 0}</strong>
                   </span>
-                  <span>Occupation : <strong>0%</strong></span>
+                  <span>
+                    Occupation : <strong>0%</strong>
+                  </span>
                 </div>
 
                 <div style={styles.infoRow}>
