@@ -198,12 +198,25 @@ export default function OwnerProperties() {
                 </div>
                 <p style={styles.address}>{property.address}</p>
 
+                {/* ✅ UPDATED: Dynamic Occupancy */}
                 <div style={styles.infoRow}>
                   <span>
                     Unités : <strong>{property.units?.length || 0}</strong>
                   </span>
                   <span>
-                    Occupation : <strong>0%</strong>
+                    Occupation :{" "}
+                    <strong>
+                      {(() => {
+                        const total = property.units?.length || 0;
+                        const occupied =
+                          property.units?.filter(
+                            (u) => u.renterId || u.renter
+                          ).length || 0;
+                        return total > 0
+                          ? `${Math.round((occupied / total) * 100)}%`
+                          : "0%";
+                      })()}
+                    </strong>
                   </span>
                 </div>
 
