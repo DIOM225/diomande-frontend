@@ -1,13 +1,23 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { FaHome, FaUsers, FaChartLine } from "react-icons/fa";
 
-export default function PropertyStats({ stats }) {
+export default function PropertyStats({ units = [] }) {
+  // ✅ Compute occupancy stats directly from units
+  const stats = useMemo(() => {
+    const total = units.length;
+    const occupied = units.filter((u) => u.renterId || u.renter).length;
+    const rate = total > 0 ? Math.round((occupied / total) * 100) : 0;
+    return { total, occupied, rate };
+  }, [units]);
+
   return (
     <div style={styles.wrapper}>
       <div style={styles.container}>
         <div style={styles.grid}>
           {/* Total Units */}
-          <div style={{ ...styles.card, background: "#fff7ed", borderColor: "#fde68a" }}>
+          <div
+            style={{ ...styles.card, background: "#fff7ed", borderColor: "#fde68a" }}
+          >
             <div style={styles.iconBox("#f97316")}>
               <FaHome color="#fff" />
             </div>
@@ -18,7 +28,9 @@ export default function PropertyStats({ stats }) {
           </div>
 
           {/* Occupied Units */}
-          <div style={{ ...styles.card, background: "#f0fdf4", borderColor: "#bbf7d0" }}>
+          <div
+            style={{ ...styles.card, background: "#f0fdf4", borderColor: "#bbf7d0" }}
+          >
             <div style={styles.iconBox("#10b981")}>
               <FaUsers color="#fff" />
             </div>
@@ -29,13 +41,17 @@ export default function PropertyStats({ stats }) {
           </div>
 
           {/* Occupancy Rate */}
-          <div style={{ ...styles.card, background: "#fef3c7", borderColor: "#fde68a" }}>
+          <div
+            style={{ ...styles.card, background: "#fef3c7", borderColor: "#fde68a" }}
+          >
             <div style={styles.iconBox("#f59e0b")}>
               <FaChartLine color="#fff" />
             </div>
             <div>
               <div style={styles.value}>{stats.rate}%</div>
-              <div style={{ ...styles.label, color: "#92400e" }}>Taux d’occupation</div>
+              <div style={{ ...styles.label, color: "#92400e" }}>
+                Taux d’occupation
+              </div>
             </div>
           </div>
         </div>
