@@ -3,65 +3,152 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0A0E15" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
 
-    <!-- 🌍 Title -->
-    <title>Diomande.com — Gérez et payez vos loyers en toute confiance</title>
-
-    <!-- 🧭 Meta Description -->
+    <title>Diomande.com — Gérez et payez vos loyers en Côte d'Ivoire</title>
     <meta
       name="description"
-      content="Simplifiez la gestion immobilière en Côte d’Ivoire. Payez votre loyer, gérez vos biens et suivez vos revenus locatifs avec Diomande.com — la plateforme immobilière moderne et sécurisée."
+      content="Diomandé permet à la diaspora de voir, encaisser et prouver chaque loyer en Côte d'Ivoire — en temps réel, par Wave & CinetPay. Gérez vos biens où que vous soyez, en toute transparence."
     />
-
-    <!-- 🔑 Keywords -->
     <meta
       name="keywords"
-      content="gestion loyer Côte d’Ivoire, payer loyer en ligne, Diomande, location appartement Abidjan, propriétaires, immobilier, loyers sécurisés, terrains à vendre, maisons Côte d’Ivoire"
+      content="gestion locative Côte d'Ivoire, gestion loyer Abidjan, payer loyer en ligne, encaisser loyer Wave, quittance de loyer en ligne, gestion locative diaspora, Diomande, location appartement Abidjan, terrains à vendre Côte d'Ivoire, maisons Côte d'Ivoire"
     />
-
-    <!-- 👤 Author -->
     <meta name="author" content="Diomande.com" />
-
-    <!-- 🧡 Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="canonical" href="https://diomande.com/" />
+    <link rel="alternate" hreflang="fr" href="https://diomande.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://diomande.com/" />
 
-    <!-- 🔗 Canonical URL -->
-    <link rel="canonical" href="https://diomande.com" />
-
-    <!-- 🧠 Open Graph for social sharing -->
-    <meta property="og:title" content="Diomande.com — Gérez et payez vos loyers en toute confiance" />
+    <!-- Open Graph (WhatsApp / Facebook link previews) -->
+    <meta property="og:site_name" content="Diomandé" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Diomande.com — Vos loyers en Côte d'Ivoire, sous vos yeux" />
     <meta
       property="og:description"
-      content="Payez votre loyer, suivez vos revenus et administrez vos propriétés en toute sécurité avec Diomande.com — la solution immobilière moderne pour la Côte d’Ivoire."
+      content="Voyez, encaissez et prouvez chaque loyer en temps réel, par Wave & CinetPay. La transparence absolue, où que vous soyez."
     />
     <meta property="og:image" content="https://diomande.com/og-image.jpg" />
-    <meta property="og:url" content="https://diomande.com" />
-    <meta property="og:type" content="website" />
+    <meta property="og:image:alt" content="Tableau de bord Diomandé : loyers collectés et statut des locataires" />
+    <meta property="og:url" content="https://diomande.com/" />
 
-    <!-- 🐦 Twitter Card -->
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Diomande.com — Loyers, Maisons et Terrains en Côte d’Ivoire" />
+    <meta name="twitter:title" content="Diomande.com — Vos loyers en Côte d'Ivoire, sous vos yeux" />
     <meta
       name="twitter:description"
-      content="Simplifiez la gestion de vos loyers et propriétés avec Diomande.com — payez, gérez et investissez en toute confiance."
+      content="Voyez, encaissez et prouvez chaque loyer en temps réel, par Wave & CinetPay."
     />
     <meta name="twitter:image" content="https://diomande.com/og-image.jpg" />
 
-    <!-- ⚡ Performance -->
-    <link rel="preload" as="image" href="/favicon.ico" />
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Diomandé",
+        "url": "https://diomande.com/",
+        "logo": "https://diomande.com/favicon.ico",
+        "description": "Gestion locative et encaissement des loyers pour la diaspora ivoirienne, en toute transparence.",
+        "areaServed": "CI"
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Diomandé",
+        "url": "https://diomande.com/",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web, iOS",
+        "offers": { "@type": "Offer", "description": "10 % du loyer encaissé, sans commission cachée" }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          { "@type": "Question", "name": "Ça marche avec Wave ?", "acceptedAnswer": { "@type": "Answer", "text": "Oui, l'encaissement se fait par Wave et CinetPay, les moyens que vos locataires utilisent déjà." } },
+          { "@type": "Question", "name": "Où va mon argent ?", "acceptedAnswer": { "@type": "Answer", "text": "Le loyer arrive directement, tracé de bout en bout, avec notification et reçu à chaque paiement." } },
+          { "@type": "Question", "name": "Mes locataires vont-ils l'utiliser ?", "acceptedAnswer": { "@type": "Answer", "text": "Ils rejoignent avec un code et paient comme ils envoient déjà de l'argent, puis gardent leurs reçus." } }
+        ]
+      }
+    </script>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400;1,9..144,500&display=swap"
       rel="stylesheet"
     />
-
-    <!-- 🚀 Vite Script -->
-    <script type="module" src="/src/main.jsx"></script>
   </head>
 
   <body>
     <div id="root"></div>
+
+    <!--
+      Static, crawler-readable snapshot of the page. Search engines, WhatsApp and other
+      no-JS crawlers read this real content — not just <head> metadata. When JavaScript runs,
+      the inline script below removes it and React mounts the live app into an empty #root.
+    -->
+    <div id="seo-fallback">
+      <div style="max-width:900px;margin:0 auto;padding:40px 24px;font-family:Inter,system-ui,sans-serif;background:#0A0E15;color:#EAF0F7;min-height:100vh">
+        <header>
+          <strong style="font-size:22px">Diomande<span style="color:#FF6A00">.</span></strong>
+          <nav aria-label="Principale" style="margin-top:8px">
+            <a href="/loye" style="color:#A7B0BE;margin-right:16px">Loyer</a>
+            <a href="/land" style="color:#A7B0BE;margin-right:16px">Terrains</a>
+            <a href="/home" style="color:#A7B0BE;margin-right:16px">Maisons</a>
+            <a href="/auth" style="color:#A7B0BE">Connexion / Inscription</a>
+          </nav>
+        </header>
+
+        <main>
+          <h1>Votre bien au pays, sous vos yeux — Diomandé</h1>
+          <p>Diomandé permet à la diaspora ivoirienne de voir, encaisser et prouver chaque loyer en Côte d'Ivoire, en temps réel et où que vous soyez. Dès que votre locataire paie, vous recevez la notification. La transparence absolue, sur chaque loyer, chaque franc, chaque bien.</p>
+
+          <h2>Ce qui change pour vous</h2>
+          <ul>
+            <li><strong>Ne plus jamais demander</strong> : vous ouvrez l'app, vous savez. Fini les appels pour vérifier si le loyer est tombé.</li>
+            <li><strong>Être payé, sans courir</strong> : le locataire paie en un geste par Wave ou CinetPay, vous encaissez directement et êtes notifié à l'instant.</li>
+            <li><strong>Dormir tranquille</strong> : tout est tracé, prouvé, à sa place.</li>
+          </ul>
+
+          <h2>Comment ça marche</h2>
+          <ol>
+            <li>Créez vos biens : chaque logement reçoit un code d'invitation unique.</li>
+            <li>Le locataire paie par Wave ou CinetPay, sans intermédiaire.</li>
+            <li>Vous voyez tout : notification et reçu automatique à chaque paiement, en temps réel.</li>
+          </ol>
+
+          <h2>La preuve, pas la promesse</h2>
+          <p><strong>Voir</strong> : attendu contre collecté, occupation, qui a payé et qui est en retard. <strong>Encaisser</strong> : mobile money (Wave &amp; CinetPay), notifié à chaque paiement. <strong>Prouver</strong> : reçu instantané et historique complet.</p>
+
+          <h2>Pourquoi Diomandé</h2>
+          <p>Fait pour le propriétaire à distance : vue en temps réel, reçus et historique, notifications à chaque paiement. Un prix clair — 10 % du loyer encaissé, sans commission cachée.</p>
+
+          <h2>Ce que disent nos clients</h2>
+          <blockquote>« Grâce à l'application Diom225, je reçois mes loyers à temps chaque fin du mois ! » — Kouassi Marie, Propriétaire</blockquote>
+          <blockquote>« J'ai trouvé mon terrain idéal avec un titre foncier vérifié. Transaction transparente. » — Diabaté Ibrahim, Acheteur</blockquote>
+          <blockquote>« Payer mon loyer en ligne, c'est tellement pratique. Plus besoin de me déplacer ! » — Traoré Fatou, Locataire</blockquote>
+
+          <p><a href="/loye" style="color:#FF6A00;font-weight:600">Gérer mon loyer</a> · <a href="/auth" style="color:#FF6A00;font-weight:600">Créer un compte</a></p>
+        </main>
+
+        <footer style="margin-top:40px;color:#7A8492;font-size:13px">
+          <p>Diomande.com — Plateforme immobilière de confiance en Côte d'Ivoire. Paiements sécurisés Wave &amp; CinetPay. contact@diomande.com</p>
+        </footer>
+      </div>
+    </div>
+    <script>
+      /* JS is on → remove the SEO snapshot so React mounts a clean #root */
+      var __f = document.getElementById("seo-fallback");
+      if (__f) __f.parentNode.removeChild(__f);
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
