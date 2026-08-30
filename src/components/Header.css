@@ -344,3 +344,15 @@
   background: rgba(255, 106, 0, 0.06);
   color: #ff6a00;
 }
+
+/* =========================
+   DARK VARIANT — homepage landing only (matches redesign)
+========================= */
+.header--dark{background:rgba(10,14,21,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.09);box-shadow:none}
+.header--dark .logo{color:#F5F2EA;font-family:'Archivo',system-ui,sans-serif;font-weight:800}
+.header--dark .logo span{color:#FF6A00}
+.header--dark .nav a{color:#A7B0BE}
+.header--dark .nav a:hover{color:#FFB482;background:rgba(255,106,0,.12)}
+.header--dark .nav a[href="/auth"]{background:#FF6A00;color:#160A02;font-weight:600;padding:.5rem 1.1rem;border-radius:999px}
+.header--dark .nav a[href="/auth"]:hover{background:#FF8526;color:#160A02}
+.header--dark .mobile-menu-icon{color:#F5F2EA}

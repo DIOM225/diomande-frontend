@@ -98,7 +98,7 @@ function Header() {
   );
 
   return (
-    <header className="header">
+    <header className={location.pathname === "/" ? "header header--dark" : "header"}>
       <div className="logo" onClick={() => navigate("/")}>
         Diomande<span>.com</span>
       </div>
